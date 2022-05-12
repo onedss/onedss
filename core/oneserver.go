@@ -1,4 +1,6 @@
 package core
 
-type oneserver interface {
+type OneServer interface {
+	Start() (err error)
+	Stop()
 }

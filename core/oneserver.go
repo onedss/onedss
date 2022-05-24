@@ -2,5 +2,6 @@ package core
 
 type OneServer interface {
 	Start() (err error)
-	Stop()
+	Stop() (err error)
+	GetPort() int
 }

@@ -1,12 +1,35 @@
 package core
 
-import "github.com/onedss/onedss/service"
+import (
+	"fmt"
+	"github.com/onedss/EasyGoLib/utils"
+	"github.com/onedss/onedss/models"
+	"github.com/onedss/onedss/routers"
+	"github.com/onedss/onedss/service"
+	"log"
+)
 
 type application struct {
 	servers []OneServer
 }
 
 func (p *application) Start(s service.Service) (err error) {
+	log.Println("********** START **********")
+	for _, server := range p.servers {
+		port := server.GetPort()
+		if utils.IsPortInUse(port) {
+			err = fmt.Errorf("TCP port[%d] In Use", port)
+			return
+		}
+	}
+	err = models.Init()
+	if err != nil {
+		return
+	}
+	err = routers.Init()
+	if err != nil {
+		return
+	}
 	for _, server := range p.servers {
 		err := server.Start()
 		if err != nil {
@@ -17,10 +40,13 @@ func (p *application) Start(s service.Service) (err error) {
 }
 
 func (p *application) Stop(s service.Service) (err error) {
+	defer log.Println("********** STOP **********")
+	defer utils.CloseLogWriter()
 	for _, server := range p.servers {
 		server.Stop()
 	}
-	return nil
+	models.Close()
+	return
 }
 
 func (p *application) AddServer(server OneServer) {

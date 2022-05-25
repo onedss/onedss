@@ -1,8 +1,9 @@
-package core
+package app
 
 import (
 	"fmt"
 	"github.com/onedss/EasyGoLib/utils"
+	"github.com/onedss/onedss/core"
 	"github.com/onedss/onedss/models"
 	"github.com/onedss/onedss/routers"
 	"github.com/onedss/onedss/service"
@@ -10,7 +11,7 @@ import (
 )
 
 type application struct {
-	servers []OneServer
+	servers []core.OneServer
 }
 
 func (p *application) Start(s service.Service) (err error) {
@@ -49,6 +50,6 @@ func (p *application) Stop(s service.Service) (err error) {
 	return
 }
 
-func (p *application) AddServer(server OneServer) {
+func (p *application) AddServer(server core.OneServer) {
 	p.servers = append(p.servers, server)
 }

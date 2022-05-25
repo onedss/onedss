@@ -1,4 +1,4 @@
-package core
+package app
 
 import (
 	"github.com/common-nighthawk/go-figure"

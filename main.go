@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/onedss/onedss/core"
+	"github.com/onedss/onedss/app"
 	"github.com/onedss/onedss/routers"
 	"log"
 )
@@ -18,5 +18,5 @@ func main() {
 	routers.BuildVersion = fmt.Sprintf("%s.%s", routers.BuildVersion, gitCommitCode)
 	routers.BuildDateTime = buildDateTime
 
-	core.StartApp()
+	app.StartApp()
 }

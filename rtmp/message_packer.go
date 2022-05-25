@@ -11,12 +11,10 @@ package rtmp
 import (
 	"fmt"
 	"io"
+	"log"
 
-	"github.com/onedss/naza/pkg/nazalog"
-
-	"github.com/onedss/lal/pkg/base"
-
-	"github.com/onedss/naza/pkg/bele"
+	"github.com/onedss/onedss/lal/base"
+	"github.com/onedss/onedss/lal/bele"
 )
 
 const (
@@ -73,7 +71,7 @@ func (packer *MessagePacker) ChunkAndWrite(writer io.Writer, csid int, typeid ui
 	h.MsgStreamId = streamid
 	h.TimestampAbs = 0
 	chunks := Message2Chunks(packer.b.Bytes()[12:], &h)
-	nazalog.Debugf("CHEFERASEME %d %d", packer.b.Len(), len(chunks))
+	log.Printf("CHEFERASEME %d %d", packer.b.Len(), len(chunks))
 	packer.b.Reset()
 	_, err := writer.Write(chunks)
 	return err
@@ -304,7 +302,7 @@ func (b *Buffer) WriteTo(w io.Writer) (n int64, err error) {
 	if nBytes := b.Len(); nBytes > 0 {
 		m, e := w.Write(b.Bytes())
 		if m > nBytes {
-			nazalog.Panicf("Buffer.WriteTo: invalid Write count. expected=%d, actual=%d", nBytes, m)
+			log.Panicf("Buffer.WriteTo: invalid Write count. expected=%d, actual=%d", nBytes, m)
 		}
 		b.readPos += m
 		n = int64(m)
@@ -337,7 +335,7 @@ func (b *Buffer) grow(n int) {
 		newLen = cap(b.core) * 2
 	}
 	buf := make([]byte, newLen)
-	nazalog.Debugf("Buffer::grow. need=%d, old len=%d, cap=%d, new len=%d", n, b.Len(), cap(b.core), newLen)
+	log.Printf("Buffer::grow. need=%d, old len=%d, cap=%d, new len=%d", n, b.Len(), cap(b.core), newLen)
 	copy(buf, b.core[b.readPos:b.writePos])
 	b.core = buf
 	b.readPos = 0

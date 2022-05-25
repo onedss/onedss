@@ -9,9 +9,8 @@
 package rtmp
 
 import (
+	"log"
 	"net"
-
-	log "github.com/onedss/onedss/lal/nazalog"
 )
 
 type ServerObserver interface {
@@ -39,7 +38,7 @@ func (server *Server) Listen() (err error) {
 	if server.ln, err = net.Listen("tcp", server.addr); err != nil {
 		return
 	}
-	log.Infof("start rtmp server listen. addr=%s", server.addr)
+	log.Printf("start rtmp server listen. addr=%s", server.addr)
 	return
 }
 
@@ -58,15 +57,15 @@ func (server *Server) Dispose() {
 		return
 	}
 	if err := server.ln.Close(); err != nil {
-		log.Error(err)
+		log.Print(err)
 	}
 }
 
 func (server *Server) handleTcpConnect(conn net.Conn) {
-	log.Infof("accept a rtmp connection. remoteAddr=%s", conn.RemoteAddr().String())
+	log.Printf("accept a rtmp connection. remoteAddr=%s", conn.RemoteAddr().String())
 	session := NewServerSession(server, conn)
 	err := session.RunLoop()
-	log.Infof("[%s] rtmp loop done. err=%v", session.uniqueKey, err)
+	log.Printf("[%s] rtmp loop done. err=%v", session.uniqueKey, err)
 	switch session.t {
 	case ServerSessionTypeUnknown:
 	// noop
@@ -85,7 +84,7 @@ func (server *Server) OnRtmpConnect(session *ServerSession, opa ObjectPairArray)
 // ServerSessionObserver
 func (server *Server) OnNewRtmpPubSession(session *ServerSession) {
 	if !server.observer.OnNewRtmpPubSession(session) {
-		log.Warnf("dispose PubSession since pub exist.")
+		log.Print("dispose PubSession since pub exist.")
 		session.Dispose()
 		return
 	}

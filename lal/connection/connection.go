@@ -18,7 +18,9 @@ package connection
 import (
 	"bufio"
 	"errors"
+	"github.com/onedss/naza/pkg/nazalog"
 	"io"
+	"log"
 	"net"
 	"sync"
 	"time"
@@ -26,8 +28,6 @@ import (
 	"github.com/onedss/onedss/lal/unique"
 
 	"github.com/onedss/onedss/lal/nazaatomic"
-
-	"github.com/onedss/onedss/lal/nazalog"
 )
 
 var (
@@ -161,7 +161,7 @@ func New(conn net.Conn, modOptions ...ModOption) Connection {
 		go c.runWriteLoop()
 	}
 
-	nazalog.Debugf("[%s] lifecycle new connection. net.Conn=%p, naza.Connection=%p", c.uniqueKey, conn, c)
+	log.Printf("[%s] lifecycle new connection. net.Conn=%p, naza.Connection=%p", c.uniqueKey, conn, c)
 	return c
 }
 

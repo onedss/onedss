@@ -9,7 +9,10 @@
 // package assert 提供了单元测试时的断言功能，减少一些模板代码
 package assert
 
-import "github.com/onedss/onedss/nazareflect"
+import (
+	"bytes"
+	"reflect"
+)
 
 // 单元测试中的 *testing.T 和 *testing.B 都满足该接口
 type TestingT interface {
@@ -24,7 +27,7 @@ func Equal(t TestingT, expected interface{}, actual interface{}, msg ...string) 
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if !nazareflect.Equal(expected, actual) {
+	if !IsEqual(expected, actual) {
 		t.Errorf("%s expected=%+v, actual=%+v", msg, expected, actual)
 	}
 	return
@@ -35,8 +38,38 @@ func IsNotNil(t TestingT, actual interface{}, msg ...string) {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	if nazareflect.IsNil(actual) {
+	if IsNil(actual) {
 		t.Errorf("%s expected not nil, but actual=%+v", msg, actual)
 	}
 	return
+}
+
+func IsNil(actual interface{}) bool {
+	if actual == nil {
+		return true
+	}
+	v := reflect.ValueOf(actual)
+	k := v.Kind()
+	if k == reflect.Chan || k == reflect.Map || k == reflect.Ptr || k == reflect.Interface || k == reflect.Slice {
+		return v.IsNil()
+	}
+	return false
+}
+
+// TODO chef: 考虑是否将EqualInteger放入Equal中，但是需考虑，会给Equal带来额外的性能开销
+func IsEqual(expected, actual interface{}) bool {
+	if expected == nil {
+		return IsNil(actual)
+	}
+
+	exp, ok := expected.([]byte)
+	if ok {
+		act, ok := actual.([]byte)
+		if !ok {
+			return false
+		}
+		return bytes.Equal(exp, act)
+	}
+
+	return reflect.DeepEqual(expected, actual)
 }

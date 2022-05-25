@@ -14,12 +14,12 @@ import (
 	"crypto/sha256"
 	"fmt"
 	"io"
+	"log"
 	"time"
 
 	"github.com/onedss/onedss/lal/base"
 
 	"github.com/onedss/onedss/lal/bele"
-	"github.com/onedss/onedss/lal/nazalog"
 )
 
 // https://pengrl.com/p/20027
@@ -234,7 +234,7 @@ func parseChallenge(b []byte, peerKey []byte, key []byte) []byte {
 	//}
 	ver := bele.BeUint32(b[5:])
 	if ver == 0 {
-		nazalog.Debug("handshake simple mode.")
+		log.Print("handshake simple mode.")
 		return nil
 	}
 
@@ -243,10 +243,10 @@ func parseChallenge(b []byte, peerKey []byte, key []byte) []byte {
 		offs = findDigest(b[1:], 8, peerKey)
 	}
 	if offs == -1 {
-		nazalog.Warn("get digest offs failed. roll back to try simple handshake.")
+		log.Print("get digest offs failed. roll back to try simple handshake.")
 		return nil
 	}
-	nazalog.Debug("handshake complex mode.")
+	log.Print("handshake complex mode.")
 
 	// use c0c1 digest to make a new digest
 	digest := makeDigest(b[1+offs:1+offs+keyLen], key)

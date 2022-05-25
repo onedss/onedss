@@ -11,10 +11,9 @@ package assert_test
 import (
 	"errors"
 	"fmt"
+	"github.com/onedss/onedss/lal/assert"
 	"os"
 	"testing"
-
-	"github.com/onedss/onedss/assert"
 )
 
 // 大部分时候 TestingT interface 的实例为单元测试中的 *testing.T 和 *testing.B

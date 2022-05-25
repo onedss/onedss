@@ -12,6 +12,8 @@ require (
 	github.com/onedss/EasyGoLib v1.0.0
 	github.com/onedss/cors v1.0.0
 	github.com/onedss/go-sdp v1.0.0
+	github.com/onedss/lal v0.25.2
+	github.com/onedss/naza v0.20.2
 	github.com/onedss/sessions v1.0.0
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.19.0 // indirect

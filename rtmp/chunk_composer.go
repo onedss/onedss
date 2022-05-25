@@ -14,8 +14,8 @@ package rtmp
 
 import (
 	"github.com/onedss/onedss/lal/base"
-	"github.com/onedss/onedss/lal/nazalog"
 	"io"
+	"log"
 
 	"github.com/onedss/onedss/lal/bele"
 )
@@ -245,7 +245,7 @@ func (c *ChunkComposer) RunLoop(reader io.Reader, cb OnCompleteMessage) error {
 			}
 		}
 		if stream.msg.len() > stream.header.MsgLen {
-			nazalog.Warnf("stream msg len should not greater than len field in header. stream.msg.len=%d, header=%+v", stream.msg.len(), stream.header)
+			log.Printf("stream msg len should not greater than len field in header. stream.msg.len=%d, header=%+v", stream.msg.len(), stream.header)
 			return ErrRtmp
 		}
 	}

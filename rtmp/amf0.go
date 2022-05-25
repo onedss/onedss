@@ -16,9 +16,9 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"log"
 
 	"github.com/onedss/onedss/lal/bele"
-	"github.com/onedss/onedss/lal/nazalog"
 )
 
 var (
@@ -164,7 +164,7 @@ func (amf0) WriteObject(writer io.Writer, opa ObjectPairArray) error {
 				return err
 			}
 		default:
-			nazalog.Panicf("unknown value type. i=%d, v=%+v", i, opa[i].Value)
+			log.Panicf("unknown value type. i=%d, v=%+v", i, opa[i].Value)
 		}
 	}
 	_, err := writer.Write(Amf0TypeMarkerObjectEndBytes)
@@ -311,7 +311,7 @@ func (amf0) ReadObject(b []byte) (ObjectPairArray, int, error) {
 			}
 			index += l
 		default:
-			nazalog.Panicf("unknown type. vt=%d", vt)
+			log.Panicf("unknown type. vt=%d", vt)
 		}
 	}
 }
@@ -370,7 +370,7 @@ func (amf0) ReadArray(b []byte) (ObjectPairArray, int, error) {
 			}
 			index += l
 		default:
-			nazalog.Panicf("unknown type. vt=%d", vt)
+			log.Panicf("unknown type. vt=%d", vt)
 		}
 	}
 
@@ -378,7 +378,7 @@ func (amf0) ReadArray(b []byte) (ObjectPairArray, int, error) {
 		index += 3
 	} else {
 		// 测试时发现Array最后也是以00 00 09结束，不确定是否是标准规定的，加个日志在这
-		nazalog.Warn("amf ReadArray without suffix Amf0TypeMarkerObjectEndBytes.")
+		log.Fatal("amf ReadArray without suffix Amf0TypeMarkerObjectEndBytes.")
 	}
 	return ops, index, nil
 }

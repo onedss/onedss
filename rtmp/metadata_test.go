@@ -9,12 +9,12 @@
 package rtmp_test
 
 import (
+	"log"
 	"testing"
 
 	"github.com/onedss/onedss/lal/base"
 
 	"github.com/onedss/onedss/lal/assert"
-	"github.com/onedss/onedss/lal/nazalog"
 	"github.com/onedss/onedss/rtmp"
 )
 
@@ -24,7 +24,7 @@ func TestMetadata(t *testing.T) {
 
 	opa, err := rtmp.ParseMetadata(b)
 	assert.Equal(t, nil, err)
-	nazalog.Debugf("%+v", opa)
+	log.Printf("%+v", opa)
 
 	assert.Equal(t, 5, len(opa))
 	v := opa.Find("width")

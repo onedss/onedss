@@ -9,6 +9,8 @@
 package connection_test
 
 import (
+	"github.com/onedss/naza/pkg/nazalog"
+	"log"
 	"math/rand"
 	"net"
 	"sync/atomic"
@@ -18,7 +20,6 @@ import (
 	"github.com/onedss/onedss/lal/connection"
 
 	"github.com/onedss/onedss/lal/assert"
-	"github.com/onedss/onedss/lal/nazalog"
 )
 
 // TODO chef: 补充单元测试
@@ -43,7 +44,7 @@ func TestWriteTimeout(t *testing.T) {
 	b := make([]byte, 128*1024)
 	for {
 		n, err := c.Write(b)
-		nazalog.Infof("%d %+v", n, err)
+		log.Printf("%d %+v", n, err)
 		if err != nil {
 			break
 		}

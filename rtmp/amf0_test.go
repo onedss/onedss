@@ -11,10 +11,9 @@ package rtmp_test
 import (
 	"bytes"
 	"encoding/hex"
+	"log"
 	"strings"
 	"testing"
-
-	"github.com/onedss/onedss/lal/nazalog"
 
 	"github.com/onedss/onedss/lal/assert"
 	"github.com/onedss/onedss/lal/fake"
@@ -115,7 +114,7 @@ func TestAmf0_ReadArray(t *testing.T) {
 	assert.Equal(t, 16, len(ops))
 	assert.Equal(t, 359, len(gold))
 	assert.Equal(t, 359, l)
-	nazalog.Debug(ops)
+	log.Println(ops)
 }
 
 func TestAmf0_ReadCase1(t *testing.T) {

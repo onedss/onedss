@@ -13,18 +13,17 @@ package nazaerrors
 import (
 	"errors"
 	"io"
+	"log"
 	"testing"
 
 	"github.com/onedss/onedss/lal/assert"
-
-	"github.com/onedss/onedss/lal/nazalog"
 )
 
 func TestWrap(t *testing.T) {
 	err := Wrap(io.EOF)
-	nazalog.Debugf("%+v", err)
+	log.Printf("%+v", err)
 	assert.Equal(t, true, errors.Is(err, io.EOF))
 	err = Wrap(err)
-	nazalog.Debugf("%+v", err)
+	log.Printf("%+v", err)
 	assert.Equal(t, true, errors.Is(err, io.EOF))
 }

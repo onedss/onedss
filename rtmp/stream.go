@@ -11,12 +11,11 @@ package rtmp
 import (
 	"encoding/hex"
 	"fmt"
+	"log"
 
 	"github.com/onedss/onedss/lal/nazastring"
 
 	"github.com/onedss/onedss/lal/base"
-
-	"github.com/onedss/onedss/lal/nazalog"
 )
 
 const initMsgLen = 4096
@@ -53,7 +52,7 @@ func (stream *Stream) toDebugString() string {
 func (stream *Stream) toAvMsg() base.RtmpMsg {
 	// TODO chef: 考虑可能出现header中的len和buf的大小不一致的情况
 	if stream.header.MsgLen != uint32(len(stream.msg.buf[stream.msg.b:stream.msg.e])) {
-		nazalog.Errorf("toAvMsg. headerMsgLen=%d, bufLen=%d", stream.header.MsgLen, len(stream.msg.buf[stream.msg.b:stream.msg.e]))
+		log.Printf("toAvMsg. headerMsgLen=%d, bufLen=%d", stream.header.MsgLen, len(stream.msg.buf[stream.msg.b:stream.msg.e]))
 	}
 	return base.RtmpMsg{
 		Header:  stream.header,
@@ -74,7 +73,7 @@ func (msg *StreamMsg) reserve(n uint32) {
 	nb := make([]byte, bufCap+nn)  // 当前容量加扩充容量
 	copy(nb, msg.buf[msg.b:msg.e]) // 老数据拷贝
 	msg.buf = nb                   // 替换
-	nazalog.Debugf("reserve. newLen=%d(%d, %d), need=(%d -> %d), cap=(%d -> %d)", len(msg.buf), msg.b, msg.e, n, nn, bufCap, cap(msg.buf))
+	log.Printf("reserve. newLen=%d(%d, %d), need=(%d -> %d), cap=(%d -> %d)", len(msg.buf), msg.b, msg.e, n, nn, bufCap, cap(msg.buf))
 }
 
 // 可读长度

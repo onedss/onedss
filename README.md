@@ -14,7 +14,10 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 -->
+OneDss（OneDarwinStreamingService）
 
-OneDss is open source streaming service,focus traditional RTSP/RTMP security technology ；OneDss是一款开源的流媒体服务器软件，专注于传统安防（RTSP/RTMP）流媒体技术
+OneDss is open source streaming service, focus RTSP/RTMP technology ；
+
+OneDss是一款开源的流媒体服务器软件，专注于（RTSP/RTMP）相关的流媒体技术
 
 http://www.onedss.com

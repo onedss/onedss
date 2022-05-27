@@ -18,7 +18,6 @@ package connection
 import (
 	"bufio"
 	"errors"
-	"github.com/onedss/naza/pkg/nazalog"
 	"io"
 	"log"
 	"net"
@@ -319,7 +318,7 @@ func (c *connection) Flush() error {
 }
 
 func (c *connection) Close() error {
-	nazalog.Debugf("[%s] Close.", c.uniqueKey)
+	log.Printf("[%s] Close.", c.uniqueKey)
 	c.close(nil)
 	return nil
 }
@@ -386,7 +385,7 @@ func (c *connection) runWriteLoop() {
 	for {
 		select {
 		case <-c.exitChan:
-			//nazalog.Debugf("[%s] recv exitChan and exit write loop", c.uniqueKey)
+			//log.Printf("[%s] recv exitChan and exit write loop", c.uniqueKey)
 			return
 		case msg := <-c.wChan:
 			switch msg.t {
@@ -425,7 +424,7 @@ func (c *connection) flush() error {
 
 func (c *connection) close(err error) {
 	c.closeOnce.Do(func() {
-		nazalog.Debugf("[%s] close once. err=%+v", c.uniqueKey, err)
+		log.Printf("[%s] close once. err=%+v", c.uniqueKey, err)
 		c.closedFlag.Store(true)
 		if c.option.WriteChanSize > 0 {
 			c.exitChan <- struct{}{}

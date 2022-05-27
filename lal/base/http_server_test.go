@@ -16,11 +16,11 @@ func TestHttpServerManager(t *testing.T) {
 	//var err error
 	//
 	//var fnFlv = func(writer http.ResponseWriter, request *http.Request) {
-	//	nazalog.Debugf("> fnFlv")
+	//	log.Printf("> fnFlv")
 	//}
 	//
 	//var fnTs = func(writer http.ResponseWriter, request *http.Request) {
-	//	nazalog.Debugf("> fnTs")
+	//	log.Printf("> fnTs")
 	//}
 	//
 	//sm := NewHttpServerManager()

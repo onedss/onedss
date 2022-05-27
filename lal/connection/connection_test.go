@@ -9,7 +9,6 @@
 package connection_test
 
 import (
-	"github.com/onedss/naza/pkg/nazalog"
 	"log"
 	"math/rand"
 	"net"
@@ -72,14 +71,14 @@ func TestWrite(t *testing.T) {
 			b := make([]byte, rand.Intn(4096))
 			n, err := srvConn.Write(b)
 			if err == nil {
-				nazalog.Debugf("sent. i=%d, n=%d", i, n)
+				log.Printf("sent. i=%d, n=%d", i, n)
 			}
 			assert.Equal(t, nil, err)
 			atomic.AddUint32(&sentN, uint32(n))
 		}
 		err = srvConn.Flush()
 		assert.Equal(t, nil, err)
-		nazalog.Debugf("total sent:%d", sentN)
+		log.Printf("total sent:%d", sentN)
 		atomic.StoreUint32(&sentDone, 1)
 		srvConn.Close()
 	}()
@@ -91,7 +90,7 @@ func TestWrite(t *testing.T) {
 	for {
 		n, _ := conn.Read(b)
 		readN += uint32(n)
-		nazalog.Debugf("total read:%d", readN)
+		log.Printf("total read:%d", readN)
 		if atomic.LoadUint32(&sentDone) == 1 && atomic.LoadUint32(&sentN) == readN {
 			break
 		}

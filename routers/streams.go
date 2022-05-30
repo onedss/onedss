@@ -11,6 +11,8 @@ import (
 	"github.com/onedss/onedss/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/onedss/onedss/lal/base"
+	"github.com/onedss/onedss/rtmp"
 	"github.com/onedss/onedss/rtsp"
 )
 
@@ -49,6 +51,31 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	agent := fmt.Sprintf("EasyDarwinGo/%s", BuildVersion)
 	if BuildDateTime != "" {
 		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)
+	}
+	if strings.IndexAny(form.URL, "rtmp://") == 0 {
+		pullSession := rtmp.NewPullSession(func(option *rtmp.PullSessionOption) {
+			option.PullTimeoutMs = 30000
+			option.ReadAvTimeoutMs = 30000
+		})
+		err = pullSession.Pull(form.URL, func(msg base.RtmpMsg) {
+			if msg.Header.MsgTypeId == base.RtmpTypeIdMetadata {
+				// noop
+				return
+			}
+			if msg.Header.MsgTypeId == base.RtmpTypeIdAudio {
+				//controlByte := msg.Payload[0]
+				//control := parseRtmpControl(controlByte)
+				//pkg := base.AvPacket{
+				//	Timestamp:   msg.Header.TimestampAbs,
+				//	PayloadType: r.audioPt,
+				//	Payload:     msg.Payload[1:],
+				//}
+			}
+		})
+		if err != nil {
+			log.Printf("pull rtmp failed. err=%+v", err)
+		}
+		return
 	}
 	client, err := rtsp.NewRTSPClient(rtsp.GetServer(), form.URL, int64(form.HeartbeatInterval)*1000, agent)
 	if err != nil {
@@ -100,6 +127,35 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	}
 	c.IndentedJSON(200, pusher.ID())
 }
+
+/*
+func parseRtmpControl(control byte) rtprtcp.RtpControl {
+	format := control >> 4 & 0xF
+	sampleRate := control >> 2 & 0x3
+	sampleSize := control >> 1 & 0x1
+	channelNum := control & 0x1
+	rtmpBodyControl := rtprtcp.MakeDefaultRtpControl()
+	rtmpBodyControl.Format = format
+	switch format {
+	case base.RtmpControlMP3:
+		rtmpBodyControl.PacketType = uint8(base.RtpPacketTypeMpa)
+	case base.RtmpControlAAC:
+		rtmpBodyControl.PacketType = uint8(base.RtpPacketTypeAac)
+	default:
+		rtmpBodyControl.PacketType = uint8(base.RtpPacketTypeMpa)
+	}
+	if sampleRate == 3 {
+		rtmpBodyControl.SampleRate = 44.1
+	}
+	if sampleSize == 1 {
+		rtmpBodyControl.SampleSize = 16
+	}
+	if channelNum == 1 {
+		rtmpBodyControl.ChannelNum = 2
+	}
+	return rtmpBodyControl
+}
+*/
 
 //StreamStop
 /**

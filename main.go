@@ -13,8 +13,8 @@ var (
 )
 
 func main() {
-	log.Printf("git commit code:%s", gitCommitCode)
-	log.Printf("build date:%s", buildDateTime)
+	log.Println("git commit code :", gitCommitCode)
+	log.Println("build date :", buildDateTime)
 	routers.BuildVersion = fmt.Sprintf("%s.%s", routers.BuildVersion, gitCommitCode)
 	routers.BuildDateTime = buildDateTime
 

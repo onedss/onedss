@@ -15,6 +15,7 @@ func StartApp() {
 	if utils.Debug {
 		log.SetFlags(log.Lshortfile | log.LstdFlags)
 	}
+	log.Println("Config File :", utils.ConfFile())
 	sec := utils.Conf().Section("service")
 	svcConfig := &service.Config{
 		Name:        sec.Key("name").MustString("EasyDarwin_Service"),

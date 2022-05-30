@@ -10,11 +10,6 @@ import (
 )
 
 func StartApp() {
-	log.SetPrefix("[OneDss] ")
-	log.SetFlags(log.LstdFlags)
-	if utils.Debug {
-		log.SetFlags(log.Lshortfile | log.LstdFlags)
-	}
 	log.Println("Config File :", utils.ConfFile())
 	sec := utils.Conf().Section("service")
 	svcConfig := &service.Config{

@@ -258,12 +258,21 @@ func (pusher *Pusher) Start() {
 	var udpConn *net.UDPConn
 	logger := pusher.Logger()
 	if pusher.RTSPClient != nil && pusher.RTSPClient.UdpHostPort != "" {
+		var localAddr *net.UDPAddr
 		udpHost := pusher.RTSPClient.UdpHostPort
 		addr, err := net.ResolveUDPAddr("udp4", udpHost)
 		if err != nil {
-			logger.Printf("pusher is not stoped, but udp address is error")
+			logger.Printf("pusher is not stoped, but udp remote address is error")
 		}
-		udpConn, err = net.DialUDP("udp4", nil, addr)
+		localHost := utils.Conf().Section("udp").Key("local_host_ip").MustString("")
+		if localHost != "" {
+			var err2 error
+			localAddr, err2 = net.ResolveUDPAddr("udp4", localHost)
+			if err2 != nil {
+				logger.Printf("pusher is not stoped, but udp local address is error")
+			}
+		}
+		udpConn, err = net.DialUDP("udp4", localAddr, addr)
 		defer udpConn.Close()
 		if err != nil {
 			logger.Printf("pusher is not stoped, but udp connection is error")

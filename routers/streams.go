@@ -1,7 +1,9 @@
 package routers
 
 import (
+	"encoding/hex"
 	"fmt"
+	"github.com/onedss/onedss/rtprtcp"
 	"log"
 	"net/http"
 	"strings"
@@ -63,13 +65,29 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 				return
 			}
 			if msg.Header.MsgTypeId == base.RtmpTypeIdAudio {
-				//controlByte := msg.Payload[0]
-				//control := parseRtmpControl(controlByte)
-				//pkg := base.AvPacket{
-				//	Timestamp:   msg.Header.TimestampAbs,
-				//	PayloadType: r.audioPt,
-				//	Payload:     msg.Payload[1:],
-				//}
+				controlByte := msg.Payload[0]
+				control := parseRtmpControl(controlByte)
+				pkg := base.AvPacket{
+					Timestamp:   msg.Header.TimestampAbs,
+					PayloadType: (base.AvPacketPt)(control.PacketType),
+					Payload:     msg.Payload[1:],
+				}
+				payload := make([]byte, 4+len(pkg.Payload))
+				copy(payload[4:], pkg.Payload)
+				//timeUnix:=time.Now().UnixNano() / 1e6
+				//nazalog.Println(timeUnix)
+				h := rtprtcp.MakeDefaultRtpHeader()
+				h.Mark = 0
+				packetType := control.PacketType
+				h.PacketType = packetType
+				//h.Seq = r.genSeq()
+				sampleRate := control.SampleRate
+				channelNum := control.ChannelNum
+				h.Timestamp = uint32(float64(pkg.Timestamp) * sampleRate * float64(channelNum))
+				//h.Ssrc = r.audioSsrc
+				//pkt := rtprtcp.MakeRtpPacket(h, payload)
+				encodedStr := hex.EncodeToString(payload)
+				log.Println(encodedStr)
 			}
 		})
 		if err != nil {
@@ -128,7 +146,6 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	c.IndentedJSON(200, pusher.ID())
 }
 
-/*
 func parseRtmpControl(control byte) rtprtcp.RtpControl {
 	format := control >> 4 & 0xF
 	sampleRate := control >> 2 & 0x3
@@ -155,7 +172,6 @@ func parseRtmpControl(control byte) rtprtcp.RtpControl {
 	}
 	return rtmpBodyControl
 }
-*/
 
 //StreamStop
 /**

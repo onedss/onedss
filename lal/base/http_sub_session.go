@@ -119,7 +119,7 @@ func (session *HttpSubSession) StreamName() string {
 	case ProtocolHttpts:
 		suffix = ".ts"
 	default:
-		log.Fatalf("[%s] acquire stream name but protocol unknown.", session.Uk)
+		log.Printf("[%s] acquire stream name but protocol unknown.", session.Uk)
 	}
 	return strings.TrimSuffix(session.UrlCtx.LastItemOfPath, suffix)
 }

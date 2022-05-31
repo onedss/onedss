@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/onedss/EasyGoLib/utils"
 	"github.com/onedss/onedss/app"
+	"github.com/onedss/onedss/core/logger"
 	"github.com/onedss/onedss/routers"
 	"log"
 )
@@ -19,8 +20,8 @@ func main() {
 	if utils.Debug {
 		log.SetFlags(log.Lshortfile | log.LstdFlags)
 	}
-	log.Println("git commit code :", gitCommitCode)
-	log.Println("build date :", buildDateTime)
+	logger.Info("git commit code :", gitCommitCode)
+	logger.Info("build date :", buildDateTime)
 	routers.BuildVersion = fmt.Sprintf("%s.%s", routers.BuildVersion, gitCommitCode)
 	routers.BuildDateTime = buildDateTime
 

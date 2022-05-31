@@ -54,7 +54,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	if BuildDateTime != "" {
 		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)
 	}
-	if strings.IndexAny(form.URL, "rtmp://") == 0 {
+	if strings.Index(form.URL, "rtmp") == 0 {
 		pullSession := rtmp.NewPullSession(func(option *rtmp.PullSessionOption) {
 			option.PullTimeoutMs = 30000
 			option.ReadAvTimeoutMs = 30000
@@ -95,7 +95,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 		}
 		return
 	}
-	client, err := rtsp.NewRTSPClient(rtsp.GetServer(), form.URL, int64(form.HeartbeatInterval)*1000, agent)
+	client, err := rtsp.NewRTSPClient(form.URL, int64(form.HeartbeatInterval)*1000, agent)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
@@ -118,7 +118,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 		client.TransType = rtsp.TRANS_TYPE_TCP
 	}
 
-	pusher := rtsp.NewClientPusher(client)
+	pusher := rtsp.NewClientPusher(rtsp.GetServer(), client)
 	if rtsp.GetServer().GetPusher(pusher.Path()) != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Path %s already exists", client.Path))
 		return

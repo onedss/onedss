@@ -11,6 +11,7 @@ import (
 )
 
 type Pusher struct {
+	RTSPServer *Server
 	*Session
 	*RTSPClient
 	players           map[string]*Player //SessionID <-> Player
@@ -35,7 +36,7 @@ func (pusher *Pusher) Server() *Server {
 	if pusher.Session != nil {
 		return pusher.Session.Server
 	}
-	return pusher.RTSPClient.Server
+	return pusher.RTSPServer
 }
 
 func (pusher *Pusher) SDPRaw() string {
@@ -154,8 +155,9 @@ func (pusher *Pusher) Source() string {
 	return pusher.RTSPClient.URL
 }
 
-func NewClientPusher(client *RTSPClient) (pusher *Pusher) {
+func NewClientPusher(server *Server, client *RTSPClient) (pusher *Pusher) {
 	pusher = &Pusher{
+		RTSPServer:     server,
 		RTSPClient:     client,
 		Session:        nil,
 		players:        make(map[string]*Player),
@@ -279,12 +281,13 @@ func (pusher *Pusher) Start() {
 			}
 		}
 		udpConn, err = net.DialUDP("udp4", localAddr, addr)
-		defer udpConn.Close()
 		if err != nil {
 			logger.Printf("pusher is not stoped, but udp connection is error")
 		}
 	}
-
+	if udpConn != nil {
+		defer udpConn.Close()
+	}
 	for !pusher.Stoped() {
 		var pack *RTPPack
 		pusher.cond.L.Lock()

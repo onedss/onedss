@@ -24,7 +24,6 @@ import (
 )
 
 type RTSPClient struct {
-	Server *Server
 	SessionLogger
 	Stoped               bool
 	Status               string
@@ -70,14 +69,13 @@ func (client *RTSPClient) String() string {
 	return fmt.Sprintf("client[%s]", client.URL)
 }
 
-func NewRTSPClient(server *Server, rawUrl string, sendOptionMillis int64, agent string) (client *RTSPClient, err error) {
+func NewRTSPClient(rawUrl string, sendOptionMillis int64, agent string) (client *RTSPClient, err error) {
 	url, err := url.Parse(rawUrl)
 	if err != nil {
 		return
 	}
 	debugLogEnable := utils.Conf().Section("rtsp").Key("debug_log_enable").MustInt(0)
 	client = &RTSPClient{
-		Server:               server,
 		Stoped:               false,
 		URL:                  rawUrl,
 		ID:                   shortid.MustGenerate(),

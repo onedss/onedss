@@ -22,6 +22,19 @@ import (
  * @apiDefine stream 流管理
  */
 
+type StreamStartForm struct {
+	URL               string `form:"url" binding:"required"`
+	CustomPath        string `form:"customPath"`
+	UdpHostPort       string `form:"udpHostPort"`
+	TransType         string `form:"transType"`
+	IdleTimeout       int    `form:"idleTimeout"`
+	HeartbeatInterval int    `form:"heartbeatInterval"`
+}
+
+type StreamStopForm struct {
+	ID string `form:"id" binding:"required"`
+}
+
 //StreamStart
 /**
  * @api {get} /api/v1/stream/start 启动拉转推
@@ -36,15 +49,7 @@ import (
  * @apiSuccess (200) {String} ID	拉流的ID。后续可以通过该ID来停止拉流
  */
 func (h *APIHandler) StreamStart(c *gin.Context) {
-	type Form struct {
-		URL               string `form:"url" binding:"required"`
-		CustomPath        string `form:"customPath"`
-		UdpHostPort       string `form:"udpHostPort"`
-		TransType         string `form:"transType"`
-		IdleTimeout       int    `form:"idleTimeout"`
-		HeartbeatInterval int    `form:"heartbeatInterval"`
-	}
-	var form Form
+	var form StreamStartForm
 	err := c.Bind(&form)
 	if err != nil {
 		log.Printf("Pull to push err:%v", err)
@@ -132,6 +137,11 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	log.Printf("Pull to push %v success ", form)
 	rtsp.GetServer().AddPusher(pusher)
 	// save to db.
+	saveToDatabase(form)
+	c.IndentedJSON(200, pusher.ID())
+}
+
+func saveToDatabase(form StreamStartForm) {
 	var stream = models.Stream{
 		URL:               form.URL,
 		CustomPath:        form.CustomPath,
@@ -143,7 +153,6 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	} else {
 		db.SQLite.Save(&stream)
 	}
-	c.IndentedJSON(200, pusher.ID())
 }
 
 func parseRtmpControl(control byte) rtprtcp.RtpControl {
@@ -182,10 +191,7 @@ func parseRtmpControl(control byte) rtprtcp.RtpControl {
  * @apiUse simpleSuccess
  */
 func (h *APIHandler) StreamStop(c *gin.Context) {
-	type Form struct {
-		ID string `form:"id" binding:"required"`
-	}
-	var form Form
+	var form StreamStopForm
 	err := c.Bind(&form)
 	if err != nil {
 		log.Printf("stop pull to push err:%v", err)

@@ -21,19 +21,19 @@ type Server struct {
 	TCPListener    *net.TCPListener
 	TCPPort        int
 	Stoped         bool
-	pushers        map[string]*Pusher // Path <-> Pusher
+	pushers        map[string]BasePusher // Path <-> Pusher
 	pushersLock    sync.RWMutex
-	addPusherCh    chan *Pusher
-	removePusherCh chan *Pusher
+	addPusherCh    chan BasePusher
+	removePusherCh chan BasePusher
 }
 
 var Instance *Server = &Server{
 	SessionLogger:  SessionLogger{log.New(os.Stdout, "[RTSPServer]", log.LstdFlags|log.Lshortfile)},
 	Stoped:         true,
 	TCPPort:        utils.Conf().Section("rtsp").Key("port").MustInt(554),
-	pushers:        make(map[string]*Pusher),
-	addPusherCh:    make(chan *Pusher),
-	removePusherCh: make(chan *Pusher),
+	pushers:        make(map[string]BasePusher),
+	addPusherCh:    make(chan BasePusher),
+	removePusherCh: make(chan BasePusher),
 }
 
 func GetServer() *Server {
@@ -67,12 +67,12 @@ func (server *Server) Start() (err error) {
 		}
 	}
 	go func() { // save to local.
-		pusher2ffmpegMap := make(map[*Pusher]*exec.Cmd)
+		pusher2ffmpegMap := make(map[BasePusher]*exec.Cmd)
 		if SaveStreamToLocal {
 			logger.Printf("Prepare to save stream to local....")
 			defer logger.Printf("End save stream to local....")
 		}
-		var pusher *Pusher
+		var pusher BasePusher
 		addChnOk := true
 		removeChnOk := true
 		for addChnOk || removeChnOk {
@@ -140,7 +140,7 @@ func (server *Server) Start() (err error) {
 								proc.Signal(syscall.SIGTERM)
 							}
 						}
-						pusher2ffmpegMap = make(map[*Pusher]*exec.Cmd)
+						pusher2ffmpegMap = make(map[BasePusher]*exec.Cmd)
 						logger.Printf("removePusherChan closed")
 					}
 				}
@@ -184,7 +184,7 @@ func (server *Server) Stop() {
 		server.TCPListener = nil
 	}
 	server.pushersLock.Lock()
-	server.pushers = make(map[string]*Pusher)
+	server.pushers = make(map[string]BasePusher)
 	server.pushersLock.Unlock()
 
 	close(server.addPusherCh)
@@ -219,7 +219,10 @@ func (server *Server) TryAttachToPusher(session *Session) (int, *Pusher) {
 		if _pusher.RebindSession(session) {
 			session.logger.Printf("Attached to a pusher")
 			attached = 1
-			pusher = _pusher
+			p, ok := (_pusher).(*Pusher)
+			if ok {
+				pusher = p
+			}
 		} else {
 			attached = -1
 		}
@@ -245,7 +248,10 @@ func (server *Server) RemovePusher(pusher *Pusher) {
 
 func (server *Server) GetPusher(path string) (pusher *Pusher) {
 	server.pushersLock.RLock()
-	pusher = server.pushers[path]
+	p, ok := (server.pushers[path]).(*Pusher)
+	if ok {
+		pusher = p
+	}
 	server.pushersLock.RUnlock()
 	return
 }
@@ -254,7 +260,10 @@ func (server *Server) GetPushers() (pushers map[string]*Pusher) {
 	pushers = make(map[string]*Pusher)
 	server.pushersLock.RLock()
 	for k, v := range server.pushers {
-		pushers[k] = v
+		p, ok := (v).(*Pusher)
+		if ok {
+			pushers[k] = p
+		}
 	}
 	server.pushersLock.RUnlock()
 	return

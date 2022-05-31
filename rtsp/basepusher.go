@@ -6,9 +6,9 @@ type BasePusher interface {
 	Start()
 	Path() string
 	RebindSession(session *Session) bool
-	RemovePlayer(player *Player) *Pusher
-	AControl() string
-	VControl() string
-	ACodec() string
-	VCodec() string
+	//RemovePlayer(player *Player) *Pusher
+	//AControl() string
+	//VControl() string
+	//ACodec() string
+	//VCodec() string
 }

@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -29,33 +30,33 @@ func init() {
 }
 
 func Trace(v ...interface{}) {
-	TraceLogger.Println(v...)
+	TraceLogger.Output(2, fmt.Sprintln(v...))
 }
 
 func Tracef(format string, v ...interface{}) {
-	TraceLogger.Printf(format, v...)
+	TraceLogger.Output(2, fmt.Sprintf(format, v...))
 }
 
 func Info(v ...interface{}) {
-	InfoLogger.Println(v...)
+	InfoLogger.Output(2, fmt.Sprintln(v...))
 }
 
 func Infof(format string, v ...interface{}) {
-	InfoLogger.Printf(format, v...)
+	InfoLogger.Output(2, fmt.Sprintf(format, v...))
 }
 
 func Warning(v ...interface{}) {
-	WarningLogger.Println(v...)
+	WarningLogger.Output(2, fmt.Sprintln(v...))
 }
 
 func Warningf(format string, v ...interface{}) {
-	WarningLogger.Printf(format, v...)
+	WarningLogger.Output(2, fmt.Sprintf(format, v...))
 }
 
 func Error(v ...interface{}) {
-	ErrorLogger.Println(v...)
+	ErrorLogger.Output(2, fmt.Sprintln(v...))
 }
 
 func Errorf(format string, v ...interface{}) {
-	ErrorLogger.Printf(format, v...)
+	ErrorLogger.Output(2, fmt.Sprintf(format, v...))
 }

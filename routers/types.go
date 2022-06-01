@@ -2,7 +2,7 @@ package routers
 
 import "github.com/onedss/EasyGoLib/utils"
 
-const (
+var (
 	BuildVersion  = "v8.2"
 	BuildDateTime = "2022-06-01"
 )

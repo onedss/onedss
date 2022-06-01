@@ -65,7 +65,7 @@ func (client *PlayerClient) Start() observable.Observable {
 
 		//fmt.Println("StatusCode:",resp.StatusCode)
 		headers = make(map[string]string)
-		headers["Transport"] = "RTP/AVP/TCP;unicast;interleaved=0-1" //"RTP/AVP;unicast;client_port=8000-8001"
+		headers["Transport"] = "RTP/AVP;unicast;client_port=8000-8001"
 		resp, err = client.Request("SETUP", headers)
 		if err != nil {
 			return err

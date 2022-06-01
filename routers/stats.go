@@ -10,7 +10,7 @@ import (
 )
 
 /**
- * @apiDefine stats 统计
+ * @apiDefine stats 查询接口
  */
 
 /**
@@ -50,23 +50,21 @@ func (h *APIHandler) Pushers(c *gin.Context) {
 	hostname := utils.GetRequestHostname(c.Request)
 	pushers := make([]interface{}, 0)
 	for _, pusher := range rtsp.Instance.GetPushers() {
-		port := pusher.Server().TCPPort
-		rtsp := fmt.Sprintf("rtsp://%s:%d%s", hostname, port, pusher.Path())
+		port := pusher.Server.TCPPort
+		rtsp := fmt.Sprintf("rtsp://%s:%d%s", hostname, port, pusher.Path)
 		if port == 554 {
-			rtsp = fmt.Sprintf("rtsp://%s%s", hostname, pusher.Path())
+			rtsp = fmt.Sprintf("rtsp://%s%s", hostname, pusher.Path)
 		}
 		if form.Q != "" && !strings.Contains(strings.ToLower(rtsp), strings.ToLower(form.Q)) {
 			continue
 		}
 		pushers = append(pushers, map[string]interface{}{
-			"id":        pusher.ID(),
-			"url":       rtsp,
-			"path":      pusher.Path(),
-			"source":    pusher.Source(),
-			"transType": pusher.TransType(),
-			"inBytes":   pusher.InBytes(),
-			"outBytes":  pusher.OutBytes(),
-			"startAt":   utils.DateTime(pusher.StartAt()),
+			"id":        pusher.ID,
+			"path":      rtsp,
+			"transType": pusher.TransType.String(),
+			"inBytes":   pusher.InBytes,
+			"outBytes":  pusher.OutBytes,
+			"startAt":   utils.DateTime(pusher.StartAt),
 			"onlines":   len(pusher.GetPlayers()),
 		})
 	}

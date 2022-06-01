@@ -18,8 +18,8 @@ OneDss is open source streaming service, focus RTSP/RTMP technology
 
 OneDss是一款开源的流媒体服务器软件，专注于（RTSP/RTMP）相关的流媒体技术
 
-OneDss's full name is OneDarwinStreamingService.
+OneDss's full name is One DarwinStreamingService.
 
-OneDss的全称是OneDarwinStreamingService
+OneDss的全称是One DarwinStreamingService
 
 http://www.onedss.com

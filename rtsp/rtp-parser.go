@@ -19,7 +19,6 @@ type RTPInfo struct {
 	Timestamp      int
 	SSRC           int
 	Payload        []byte
-	PayloadOffset  int
 }
 
 func ParseRTP(rtpBytes []byte) *RTPInfo {
@@ -59,10 +58,28 @@ func ParseRTP(rtpBytes []byte) *RTPInfo {
 		}
 	}
 	info.Payload = rtpBytes[offset:end]
-	info.PayloadOffset = offset
-	if end-offset < 1 {
-		return nil
-	}
-
 	return info
+}
+
+func (rtp *RTPInfo) IsKeyframeStart() bool {
+	if len(rtp.Payload) >= 2 && rtp.Payload[0] == 0x7c && (rtp.Payload[1] == 0x87 || rtp.Payload[1] == 0x85) {
+		return true
+	}
+	return false
+}
+
+func (rtp *RTPInfo) IsKeyframeStartH265() bool {
+	if len(rtp.Payload) >= 3 {
+		firstByte := rtp.Payload[0]
+		headerType := (firstByte >> 1) & 0x3f
+		if headerType == 49 {
+			frametByte := rtp.Payload[2]
+			frameType := frametByte & 0x3f
+			rtpStart := (frametByte & 0x80) >> 7
+			if rtpStart == 1 && (frameType == 19 || frameType == 20 || frameType == 21 || frameType == 32 || frameType == 33 || frameType == 34) {
+				return true
+			}
+		}
+	}
+	return false
 }

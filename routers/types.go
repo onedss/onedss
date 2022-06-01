@@ -2,8 +2,10 @@ package routers
 
 import "github.com/onedss/EasyGoLib/utils"
 
-var BuildVersion = "v8.1"
-var BuildDateTime = ""
+const (
+	BuildVersion  = "v8.2"
+	BuildDateTime = "2022-06-01"
+)
 
 type PercentData struct {
 	Time utils.DateTime `json:"time"`

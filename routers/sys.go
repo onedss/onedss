@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/onedss/EasyGoLib/buildtime"
 	"github.com/onedss/EasyGoLib/db"
 	"github.com/onedss/EasyGoLib/utils"
 	"github.com/onedss/onedss/models"
@@ -19,7 +20,7 @@ import (
 )
 
 /**
- * @apiDefine sys 系统
+ * @apiDefine sys API接口
  */
 
 type APIHandler struct {
@@ -99,7 +100,7 @@ func (h *APIHandler) ModifyPassword(c *gin.Context) {
 }
 
 /**
- * @api {get} /api/v1/getserverinfo 获取平台运行信息
+ * @api {get} /getserverinfo 获取平台运行信息
  * @apiGroup sys
  * @apiName GetServerInfo
  * @apiSuccess (200) {String} Hardware 硬件信息
@@ -113,7 +114,7 @@ func (h *APIHandler) GetServerInfo(c *gin.Context) {
 		"InterfaceVersion": "V1",
 		"RunningTime":      utils.UpTimeString(),
 		"StartUpTime":      utils.DateTime(utils.StartTime),
-		"Server":           fmt.Sprintf("%s/%s,%s (Platform/%s;)", "EasyDarwin", BuildDateTime, BuildVersion, strings.Title(runtime.GOOS)),
+		"Server":           fmt.Sprintf("%s/%s (Build/%s; Platform/%s;)", "EasyDarwin", BuildVersion, buildtime.BuildTime.Format(utils.BuildTimeLayout), strings.Title(runtime.GOOS)),
 		"memData":          memData,
 		"cpuData":          cpuData,
 		"pusherData":       pusherData,
@@ -122,7 +123,7 @@ func (h *APIHandler) GetServerInfo(c *gin.Context) {
 }
 
 /**
- * @api {get} /api/v1/restart 重启服务
+ * @api {get} /restart 重启服务
  * @apiGroup sys
  * @apiName Restart
  * @apiUse simpleSuccess
@@ -146,7 +147,7 @@ func (h *APIHandler) Restart(c *gin.Context) {
  */
 
 /**
- * @api {get} /api/v1/login 登录
+ * @api {get} /login 登录
  * @apiGroup sys
  * @apiName Login
  * @apiParam {String} username 用户名
@@ -183,7 +184,7 @@ func (h *APIHandler) Login(c *gin.Context) {
 }
 
 /**
- * @api {get} /api/v1/userInfo 获取当前登录用户信息
+ * @api {get} /userInfo 获取当前登录用户信息
  * @apiGroup sys
  * @apiName UserInfo
  * @apiUse userInfo
@@ -202,7 +203,7 @@ func (h *APIHandler) UserInfo(c *gin.Context) {
 }
 
 /**
- * @api {get} /api/v1/logout 登出
+ * @api {get} /logout 登出
  * @apiGroup sys
  * @apiName Logout
  * @apiUse simpleSuccess

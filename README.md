@@ -1,4 +1,4 @@
-### Hi there 👋
+### Hi 👋
 
 <!--
 **onedss/onedss** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
@@ -14,3 +14,12 @@ Here are some ideas to get you started:
 - 😄 Pronouns: ...
 - ⚡ Fun fact: ...
 -->
+OneDss is open source streaming service, focus RTSP/RTMP technology
+
+OneDss是一款开源的流媒体服务器软件，专注于（RTSP/RTMP）相关的流媒体技术
+
+OneDss's full name is OneDarwinStreamingService.
+
+OneDss的全称是OneDarwinStreamingService
+
+http://www.onedss.com

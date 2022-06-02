@@ -48,16 +48,16 @@ func NewPusher(session *Session) (pusher *Pusher) {
 }
 
 func (pusher *Pusher) GetServer() *Server {
-	if pusher.Session != nil {
-		return pusher.Session.Server
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.Server
+	//}
 	return pusher.Server
 }
 
 func (pusher *Pusher) GetPath() string {
-	if pusher.Session != nil {
-		return pusher.Session.Path
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.Path
+	//}
 	//if pusher.RTSPClient.CustomPath != "" {
 	//	return pusher.RTSPClient.CustomPath
 	//}
@@ -66,49 +66,49 @@ func (pusher *Pusher) GetPath() string {
 }
 
 func (pusher *Pusher) GetID() string {
-	if pusher.Session != nil {
-		return pusher.Session.ID
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.ID
+	//}
 	//return pusher.RTSPClient.ID
 	return pusher.ID
 }
 
 func (pusher *Pusher) GetVCodec() string {
-	if pusher.Session != nil {
-		return pusher.Session.VCodec
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.VCodec
+	//}
 	//return pusher.RTSPClient.VCodec
 	return pusher.VCodec
 }
 
 func (pusher *Pusher) GetACodec() string {
-	if pusher.Session != nil {
-		return pusher.Session.ACodec
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.ACodec
+	//}
 	//return pusher.RTSPClient.ACodec
 	return pusher.ACodec
 }
 
 func (pusher *Pusher) GetAControl() string {
-	if pusher.Session != nil {
-		return pusher.Session.AControl
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.AControl
+	//}
 	//return pusher.RTSPClient.AControl
 	return pusher.AControl
 }
 
 func (pusher *Pusher) GetVControl() string {
-	if pusher.Session != nil {
-		return pusher.Session.VControl
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.VControl
+	//}
 	//return pusher.RTSPClient.VControl
 	return pusher.VControl
 }
 
 func (pusher *Pusher) GetSDPRaw() string {
-	if pusher.Session != nil {
-		return pusher.Session.SDPRaw
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.SDPRaw
+	//}
 	//return pusher.RTSPClient.SDPRaw
 	return pusher.SDPRaw
 }
@@ -122,37 +122,37 @@ func (pusher *Pusher) SetUDPServer(udpServer *UDPServer) {
 }
 
 func (pusher *Pusher) GetInBytes() int {
-	if pusher.Session != nil {
-		return pusher.Session.InBytes
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.InBytes
+	//}
 	return pusher.InBytes
 }
 
 func (pusher *Pusher) GetOutBytes() int {
-	if pusher.Session != nil {
-		return pusher.Session.OutBytes
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.OutBytes
+	//}
 	return pusher.OutBytes
 }
 
 func (pusher *Pusher) GetTransType() string {
-	if pusher.Session != nil {
-		return pusher.Session.TransType.String()
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.TransType.String()
+	//}
 	return pusher.TransType.String()
 }
 
 func (pusher *Pusher) GetStartAt() time.Time {
-	if pusher.Session != nil {
-		return pusher.Session.StartAt
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.StartAt
+	//}
 	return pusher.StartAt
 }
 
 func (pusher *Pusher) GetSource() string {
-	if pusher.Session != nil {
-		return pusher.Session.URL
-	}
+	//if pusher.Session != nil {
+	//	return pusher.Session.URL
+	//}
 	return pusher.URL
 }
 

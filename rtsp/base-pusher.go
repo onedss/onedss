@@ -6,21 +6,23 @@ type BasePusher interface {
 	Start()
 
 	GetPath() string
+	GetSource() string
+	GetTransType() string
+
 	GetID() string
 	GetVCodec() string
 	GetACodec() string
 	GetAControl() string
 	GetVControl() string
 	GetSDPRaw() string
+
 	GetUDPServer() *UDPServer
 	SetUDPServer(udpServer *UDPServer)
 	GetServer() *Server
 
 	GetInBytes() int
 	GetOutBytes() int
-	GetTransType() string
 	GetStartAt() time.Time
-	GetSource() string
 
 	QueueRTP(pack *RTPPack) BasePusher
 	BroadcastRTP(pack *RTPPack) BasePusher

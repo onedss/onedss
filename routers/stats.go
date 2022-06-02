@@ -60,7 +60,9 @@ func (h *APIHandler) Pushers(c *gin.Context) {
 		}
 		pushers = append(pushers, map[string]interface{}{
 			"id":        pusher.GetID(),
-			"path":      rtsp,
+			"url":       rtsp,
+			"path":      pusher.GetPath(),
+			"source":    pusher.GetSource(),
 			"transType": pusher.GetTransType(),
 			"inBytes":   pusher.GetInBytes(),
 			"outBytes":  pusher.GetOutBytes(),

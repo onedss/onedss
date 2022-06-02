@@ -4,6 +4,7 @@ import "time"
 
 type BasePusher interface {
 	Start()
+	Stop()
 
 	GetPath() string
 	GetSource() string
@@ -16,13 +17,13 @@ type BasePusher interface {
 	GetVControl() string
 	GetSDPRaw() string
 
-	GetUDPServer() *UDPServer
-	SetUDPServer(udpServer *UDPServer)
-	GetServer() *Server
-
 	GetInBytes() int
 	GetOutBytes() int
 	GetStartAt() time.Time
+
+	GetUDPServer() *UDPServer
+	SetUDPServer(udpServer *UDPServer)
+	GetServer() *Server
 
 	QueueRTP(pack *RTPPack) BasePusher
 	BroadcastRTP(pack *RTPPack) BasePusher

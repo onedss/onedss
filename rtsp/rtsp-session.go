@@ -116,7 +116,7 @@ type Session struct {
 	vRTPChannel        int
 	vRTPControlChannel int
 
-	Pusher      *Pusher
+	Pusher      BasePusher
 	Player      *Player
 	UDPClient   *UDPClient
 	RTPHandles  []func(*RTPPack)
@@ -349,11 +349,11 @@ func (session *Session) handleRequest(req *Request) {
 		}
 		session.Player = NewPlayer(session, pusher)
 		session.Pusher = pusher
-		session.AControl = pusher.AControl
-		session.VControl = pusher.VControl
-		session.ACodec = pusher.ACodec
-		session.VCodec = pusher.VCodec
-		res.SetBody(session.Pusher.SDPRaw)
+		session.AControl = pusher.GetAControl()
+		session.VControl = pusher.GetVControl()
+		session.ACodec = pusher.GetACodec()
+		session.VCodec = pusher.GetVCodec()
+		res.SetBody(session.Pusher.GetSDPRaw())
 	case "SETUP":
 		ts := req.Header["Transport"]
 		control := req.URL[strings.LastIndex(req.URL, "/")+1:]
@@ -376,10 +376,11 @@ func (session *Session) handleRequest(req *Request) {
 					Session: session,
 				}
 			}
-			if session.Type == SESSION_TYPE_PUSHER && session.Pusher.UDPServer == nil {
-				session.Pusher.UDPServer = &UDPServer{
+			if session.Type == SESSION_TYPE_PUSHER && session.Pusher.GetUDPServer() == nil {
+				u := &UDPServer{
 					Session: session,
 				}
+				session.Pusher.SetUDPServer(u)
 			}
 			if control == session.AControl {
 				session.UDPClient.APort, _ = strconv.Atoi(udpMatchs[1])
@@ -391,7 +392,7 @@ func (session *Session) handleRequest(req *Request) {
 				}
 
 				if session.Type == SESSION_TYPE_PUSHER {
-					if err := session.Pusher.UDPServer.SetupAudio(); err != nil {
+					if err := session.Pusher.GetUDPServer().SetupAudio(); err != nil {
 						res.StatusCode = 500
 						res.Status = fmt.Sprintf("udp server setup audio error, %v", err)
 						return
@@ -404,7 +405,7 @@ func (session *Session) handleRequest(req *Request) {
 						}
 					}
 					tail := append([]string{}, tss[idx+1:]...)
-					tss = append(tss[:idx+1], fmt.Sprintf("server_port=%d-%d", session.Pusher.UDPServer.APort, session.Pusher.UDPServer.AControlPort))
+					tss = append(tss[:idx+1], fmt.Sprintf("server_port=%d-%d", session.Pusher.GetUDPServer().APort, session.Pusher.GetUDPServer().AControlPort))
 					tss = append(tss, tail...)
 					ts = strings.Join(tss, ";")
 				}
@@ -418,7 +419,7 @@ func (session *Session) handleRequest(req *Request) {
 				}
 
 				if session.Type == SESSION_TYPE_PUSHER {
-					if err := session.Pusher.UDPServer.SetupVideo(); err != nil {
+					if err := session.Pusher.GetUDPServer().SetupVideo(); err != nil {
 						res.StatusCode = 500
 						res.Status = fmt.Sprintf("udp server setup video error, %v", err)
 						return
@@ -431,7 +432,7 @@ func (session *Session) handleRequest(req *Request) {
 						}
 					}
 					tail := append([]string{}, tss[idx+1:]...)
-					tss = append(tss[:idx+1], fmt.Sprintf("server_port=%d-%d", session.Pusher.UDPServer.VPort, session.Pusher.UDPServer.VControlPort))
+					tss = append(tss[:idx+1], fmt.Sprintf("server_port=%d-%d", session.Pusher.GetUDPServer().VPort, session.Pusher.GetUDPServer().VControlPort))
 					tss = append(tss, tail...)
 					ts = strings.Join(tss, ";")
 				}

@@ -1,6 +1,6 @@
 package rtsp
 
 type BasePlayer interface {
-	QueueRTP(pack *RTPPack) *Player
+	QueueRTP(pack *RTPPack) BasePlayer
 	Start()
 }

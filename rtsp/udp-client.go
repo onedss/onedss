@@ -54,7 +54,7 @@ func (c *UDPClient) SetupAudio() (err error) {
 			c.Stop()
 		}
 	}()
-	host := c.Session.Conn.RemoteAddr().String()
+	host := c.Session.GetConn().RemoteAddr().String()
 	host = host[:strings.LastIndex(host, ":")]
 	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", host, c.APort))
 	if err != nil {
@@ -96,7 +96,7 @@ func (c *UDPClient) SetupVideo() (err error) {
 			c.Stop()
 		}
 	}()
-	host := c.Session.Conn.RemoteAddr().String()
+	host := c.Session.GetConn().RemoteAddr().String()
 	host = host[:strings.LastIndex(host, ":")]
 	addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("%s:%d", host, c.VPort))
 	if err != nil {

@@ -85,17 +85,17 @@ func (tt TransType) String() string {
 const UDP_BUF_SIZE = 1048576
 
 type Session struct {
-	ID        string
-	Server    *Server
-	Conn      *net.TCPConn
-	connRW    *bufio.ReadWriter
-	connWLock sync.RWMutex
-	Type      SessionType
-	TransType TransType
-	Path      string
-	URL       string
-	SDPRaw    string
-	SDPMap    map[string]*SDPInfo
+	ID          string
+	Server      *Server
+	privateConn *net.TCPConn
+	connRW      *bufio.ReadWriter
+	connWLock   sync.RWMutex
+	Type        SessionType
+	TransType   TransType
+	Path        string
+	URL         string
+	SDPRaw      string
+	SDPMap      map[string]*SDPInfo
 
 	AControl string
 	VControl string
@@ -123,6 +123,10 @@ type Session struct {
 	StopHandles []func()
 }
 
+func (session *Session) GetConn() *net.TCPConn {
+	return session.privateConn
+}
+
 func (session *Session) String() string {
 	return fmt.Sprintf("session[%v][%v][%s][%s]", session.Type, session.TransType, session.Path, session.ID)
 }
@@ -130,12 +134,12 @@ func (session *Session) String() string {
 func NewSession(server *Server, conn *net.TCPConn) *Session {
 	networkBuffer := utils.Conf().Section("rtsp").Key("network_buffer").MustInt(1048576)
 	session := &Session{
-		ID:      shortid.MustGenerate(),
-		Server:  server,
-		Conn:    conn,
-		connRW:  bufio.NewReadWriter(bufio.NewReaderSize(conn, networkBuffer), bufio.NewWriterSize(conn, networkBuffer)),
-		StartAt: time.Now(),
-		Timeout: utils.Conf().Section("rtsp").Key("timeout").MustInt(0),
+		ID:          shortid.MustGenerate(),
+		Server:      server,
+		privateConn: conn,
+		connRW:      bufio.NewReadWriter(bufio.NewReaderSize(conn, networkBuffer), bufio.NewWriterSize(conn, networkBuffer)),
+		StartAt:     time.Now(),
+		Timeout:     utils.Conf().Section("rtsp").Key("timeout").MustInt(0),
 
 		RTPHandles:  make([]func(*RTPPack), 0),
 		StopHandles: make([]func(), 0),
@@ -151,10 +155,10 @@ func (session *Session) Stop() {
 	for _, h := range session.StopHandles {
 		h()
 	}
-	if session.Conn != nil {
+	if session.privateConn != nil {
 		session.connRW.Flush()
-		session.Conn.Close()
-		session.Conn = nil
+		session.privateConn.Close()
+		session.privateConn = nil
 	}
 	if session.UDPClient != nil {
 		session.UDPClient.Stop()
@@ -264,7 +268,7 @@ func (session *Session) Start() {
 
 func (session *Session) handleRequest(req *Request) {
 	if session.Timeout > 0 {
-		session.Conn.SetDeadline(time.Now().Add(time.Duration(session.Timeout) * time.Second))
+		session.privateConn.SetDeadline(time.Now().Add(time.Duration(session.Timeout) * time.Second))
 	}
 
 	log.Println("<<<", req)

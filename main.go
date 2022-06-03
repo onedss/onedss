@@ -15,7 +15,7 @@ var (
 )
 
 func main() {
-	log.SetPrefix("[OneDss] ")
+	log.SetPrefix("[EasyDarwin] ")
 	log.SetFlags(log.LstdFlags)
 	if utils.Debug {
 		log.SetFlags(log.Lshortfile | log.LstdFlags)

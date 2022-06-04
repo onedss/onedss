@@ -449,7 +449,7 @@ func (session *Session) handleRequest(req *Request) {
 	}
 }
 
-func (session *Session) SendRTP(pack *RTPPack) (err error) {
+func (session *Session) SessionSendRTP(pack *RTPPack) (err error) {
 	if pack == nil {
 		err = fmt.Errorf("player send rtp got nil pack")
 		return

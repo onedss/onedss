@@ -56,7 +56,7 @@ func (player *Player) Start() {
 			}
 			continue
 		}
-		if err := player.SendRTP(pack); err != nil {
+		if err := player.SessionSendRTP(pack); err != nil {
 			log.Println(err)
 		}
 	}

@@ -3,13 +3,100 @@ package routers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/onedss/EasyGoLib/db"
+	"github.com/onedss/onedss/models"
 	"github.com/onedss/onedss/rtsp"
 	"log"
 	"net/http"
+	"strings"
 )
+
+/**
+ * @apiDefine stream 流管理
+ */
+
+type StreamStartForm struct {
+	URL               string `form:"url" binding:"required"`
+	CustomPath        string `form:"customPath"`
+	UdpHostPort       string `form:"udpHostPort"`
+	TransType         string `form:"transType"`
+	IdleTimeout       int    `form:"idleTimeout"`
+	HeartbeatInterval int    `form:"heartbeatInterval"`
+}
 
 type StreamStopForm struct {
 	ID string `form:"id" binding:"required"`
+}
+
+//StreamStart
+/**
+ * @api {get} /api/v1/stream/start 启动拉转推
+ * @apiGroup stream
+ * @apiName StreamStart
+ * @apiParam {String} url RTSP源地址
+ * @apiParam {String} [customPath] 转推时的推送PATH
+ * @apiParam {String} [udpHostPort] 转推时的推送UDP的主机和端口，中间以冒号间隔
+ * @apiParam {String=TCP,UDP} [transType=TCP] 拉流传输模式
+ * @apiParam {Number} [idleTimeout] 拉流时的超时时间
+ * @apiParam {Number} [heartbeatInterval] 拉流时的心跳间隔，毫秒为单位。如果心跳间隔不为0，那拉流时会向源地址以该间隔发送OPTION请求用来心跳保活
+ * @apiSuccess (200) {String} ID	拉流的ID。后续可以通过该ID来停止拉流
+ */
+func (h *APIHandler) StreamStart(c *gin.Context) {
+	var form StreamStartForm
+	err := c.Bind(&form)
+	if err != nil {
+		log.Printf("Pull to push err:%v", err)
+		return
+	}
+	agent := fmt.Sprintf("EasyDarwinGo/%s", BuildVersion)
+	if BuildDateTime != "" {
+		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)
+	}
+	client, err := rtsp.NewRTSPClient(form.URL, int64(form.HeartbeatInterval)*1000, agent)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	if form.UdpHostPort != "" {
+		hostPort := strings.ReplaceAll(form.UdpHostPort, ".", "_")
+		form.CustomPath = strings.ReplaceAll(hostPort, ":", "_")
+	}
+	if form.CustomPath != "" && !strings.HasPrefix(form.CustomPath, "/") {
+		form.CustomPath = "/" + form.CustomPath
+	}
+	client.CustomPath = form.CustomPath
+	client.UdpHostPort = form.UdpHostPort
+	switch strings.ToLower(form.TransType) {
+	case "udp":
+		client.TransType = rtsp.TRANS_TYPE_UDP
+	case "tcp":
+		fallthrough
+	default:
+		client.TransType = rtsp.TRANS_TYPE_TCP
+	}
+	puller := rtsp.NewSessionPuller(rtsp.GetServer(), client)
+	if rtsp.GetServer().GetPusher(puller.Path()) != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Path %s already exists", client.Path))
+		return
+	}
+	go puller.Start()
+	// save to db.
+	saveToDatabase(form)
+	c.IndentedJSON(200, puller.ID())
+}
+
+func saveToDatabase(form StreamStartForm) {
+	var stream = models.Stream{
+		URL:               form.URL,
+		CustomPath:        form.CustomPath,
+		IdleTimeout:       form.IdleTimeout,
+		HeartbeatInterval: form.HeartbeatInterval,
+	}
+	if db.SQLite.Where(&models.Stream{URL: form.URL}).First(&models.Stream{}).RecordNotFound() {
+		db.SQLite.Create(&stream)
+	} else {
+		db.SQLite.Save(&stream)
+	}
 }
 
 //StreamStop

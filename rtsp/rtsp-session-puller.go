@@ -10,11 +10,12 @@ import (
 type SessionPuller struct {
 	*Session
 	RTSPClient *RTSPClient
+	path       string
 }
 
 func NewSessionPuller(server *Server, client *RTSPClient) *SessionPuller {
 	//networkBuffer := utils.Conf().Section("rtsp").Key("network_buffer").MustInt(1048576)
-	s := &Session{
+	session := &Session{
 		ID:     shortid.MustGenerate(),
 		Server: server,
 		//Conn:    conn,
@@ -25,34 +26,42 @@ func NewSessionPuller(server *Server, client *RTSPClient) *SessionPuller {
 		RTPHandles:  make([]func(*RTPPack), 0),
 		StopHandles: make([]func(), 0),
 	}
-	session := &SessionPuller{
-		Session:    s,
+	puller := &SessionPuller{
+		Session:    session,
 		RTSPClient: client,
 	}
-	return session
+	return puller
 }
 
-func (session *SessionPuller) Stop() {
-	log.Println(session.ID)
-	if session.Stoped {
+func (puller *SessionPuller) ID() string {
+	return puller.Session.ID
+}
+
+func (puller *SessionPuller) Path() string {
+	return puller.path
+}
+
+func (puller *SessionPuller) Stop() {
+	log.Println(puller.ID)
+	if puller.Stoped {
 		return
 	}
-	session.Stoped = true
-	for _, h := range session.StopHandles {
+	puller.Stoped = true
+	for _, h := range puller.StopHandles {
 		h()
 	}
-	if session.privateConn != nil {
-		session.connRW.Flush()
-		session.privateConn.Close()
-		session.privateConn = nil
+	if puller.privateConn != nil {
+		puller.connRW.Flush()
+		puller.privateConn.Close()
+		puller.privateConn = nil
 	}
-	if session.UDPClient != nil {
-		session.UDPClient.Stop()
-		session.UDPClient = nil
+	if puller.UDPClient != nil {
+		puller.UDPClient.Stop()
+		puller.UDPClient = nil
 	}
 }
 
-func (session *SessionPuller) Start() {
-	defer session.Stop()
+func (puller *SessionPuller) Start() {
+	defer puller.Stop()
 
 }

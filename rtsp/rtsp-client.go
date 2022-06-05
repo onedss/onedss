@@ -63,6 +63,8 @@ type RTSPClient struct {
 	UDPServer   *UDPServer
 	RTPHandles  []func(*RTPPack)
 	StopHandles []func()
+
+	InitFlag bool
 }
 
 func (client *RTSPClient) String() string {
@@ -488,7 +490,7 @@ func (client *RTSPClient) startStream() {
 	}
 }
 
-func (client *RTSPClient) Start(timeout time.Duration) (err error) {
+func (client *RTSPClient) Init(timeout time.Duration) (err error) {
 	if timeout == 0 {
 		timeoutMillis := utils.Conf().Section("rtsp").Key("timeout").MustInt(0)
 		timeout = time.Duration(timeoutMillis) * time.Millisecond
@@ -497,8 +499,15 @@ func (client *RTSPClient) Start(timeout time.Duration) (err error) {
 	if err != nil {
 		return
 	}
-	go client.startStream()
+	client.InitFlag = true
 	return
+}
+
+func (client *RTSPClient) Start() bool {
+	if client.InitFlag {
+		go client.startStream()
+	}
+	return client.InitFlag
 }
 
 func (client *RTSPClient) Stop() {

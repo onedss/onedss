@@ -1,6 +1,7 @@
 package rtsp
 
 import (
+	"encoding/hex"
 	"log"
 	"strings"
 	"sync"
@@ -35,6 +36,8 @@ func NewPusher(session *Session) (pusher *Pusher) {
 	}
 	session.RTPHandles = append(session.RTPHandles, func(pack *RTPPack) {
 		pusher.QueueRTP(pack)
+		encodedStr := hex.EncodeToString(pack.Buffer.Bytes())
+		log.Println(encodedStr)
 	})
 	session.StopHandles = append(session.StopHandles, func() {
 		pusher.Server.RemovePusher(pusher)
@@ -255,4 +258,17 @@ func (pusher *Pusher) RemovePlayer(player *Player) BasePusher {
 	log.Printf("%v end, now player size[%d]\n", player, len(pusher.players))
 	pusher.playersLock.Unlock()
 	return pusher
+}
+
+func (pusher *Pusher) ClearPlayer() {
+	// copy a new map to avoid deadlock
+	pusher.playersLock.Lock()
+	players := pusher.players
+	pusher.players = make(map[string]*Player)
+	pusher.playersLock.Unlock()
+	go func() { // do not block
+		for _, v := range players {
+			v.Stop()
+		}
+	}()
 }

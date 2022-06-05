@@ -4,6 +4,7 @@ import (
 	"github.com/onedss/EasyGoLib/utils"
 	"github.com/teris-io/shortid"
 	"log"
+	"sync"
 	"time"
 )
 
@@ -63,5 +64,26 @@ func (puller *SessionPuller) Stop() {
 
 func (puller *SessionPuller) Start() {
 	defer puller.Stop()
+	pusher := &Pusher{
+		//RTSPServer:     puller.Server,
+		//RTSPClient:     puller.RTSPClient,
+		Session:        puller.Session,
+		players:        make(map[string]*Player),
+		gopCacheEnable: utils.Conf().Section("rtsp").Key("gop_cache_enable").MustBool(true),
+		gopCache:       make([]*RTPPack, 0),
 
+		cond:  sync.NewCond(&sync.Mutex{}),
+		queue: make([]*RTPPack, 0),
+	}
+	client := puller.RTSPClient
+	client.RTPHandles = append(client.RTPHandles, func(pack *RTPPack) {
+		pusher.QueueRTP(pack)
+	})
+	client.StopHandles = append(client.StopHandles, func() {
+		pusher.ClearPlayer()
+		pusher.GetServer().RemovePusher(pusher)
+		pusher.cond.Broadcast()
+	})
+	client.Start()
+	puller.Server.AddPusher(pusher)
 }

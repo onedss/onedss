@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 /**
@@ -79,6 +80,13 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Path %s already exists", client.Path))
 		return
 	}
+	err = client.Init(time.Duration(form.IdleTimeout) * time.Second)
+	if err != nil {
+		log.Printf("Pull stream err :%v", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Pull stream err: %v", err))
+		return
+	}
+	log.Printf("Pull to push %v success ", form)
 	go puller.Start()
 	// save to db.
 	saveToDatabase(form)

@@ -136,7 +136,7 @@ func Init() (err error) {
 		api.GET("/pushers", API.Pushers)
 		api.GET("/players", API.Players)
 
-		//api.GET("/stream/start", API.StreamStart)
+		api.GET("/stream/start", API.StreamStart)
 		api.GET("/stream/stop", API.StreamStop)
 	}
 

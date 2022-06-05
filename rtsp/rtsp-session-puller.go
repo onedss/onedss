@@ -1,7 +1,6 @@
 package rtsp
 
 import (
-	"encoding/hex"
 	"github.com/onedss/EasyGoLib/utils"
 	"github.com/teris-io/shortid"
 	"log"
@@ -12,7 +11,6 @@ import (
 type SessionPuller struct {
 	*Session
 	RTSPClient *RTSPClient
-	path       string
 }
 
 func NewSessionPuller(server *Server, client *RTSPClient) *SessionPuller {
@@ -27,11 +25,12 @@ func NewSessionPuller(server *Server, client *RTSPClient) *SessionPuller {
 
 		RTPHandles:  make([]func(*RTPPack), 0),
 		StopHandles: make([]func(), 0),
+		Path:        client.CustomPath,
+		URL:         client.URL,
 	}
 	puller := &SessionPuller{
 		Session:    session,
 		RTSPClient: client,
-		path:       client.CustomPath,
 	}
 	return puller
 }
@@ -41,7 +40,7 @@ func (puller *SessionPuller) ID() string {
 }
 
 func (puller *SessionPuller) Path() string {
-	return puller.path
+	return puller.Session.Path
 }
 
 func (puller *SessionPuller) Stop() {
@@ -69,6 +68,7 @@ func (puller *SessionPuller) Stop() {
 }
 
 func (puller *SessionPuller) Start() {
+	client := puller.RTSPClient
 	pusher := &Pusher{
 		//RTSPServer:     puller.Server,
 		//RTSPClient:     puller.RTSPClient,
@@ -80,11 +80,8 @@ func (puller *SessionPuller) Start() {
 		cond:  sync.NewCond(&sync.Mutex{}),
 		queue: make([]*RTPPack, 0),
 	}
-	client := puller.RTSPClient
 	client.RTPHandles = append(client.RTPHandles, func(pack *RTPPack) {
 		pusher.QueueRTP(pack)
-		encodedStr := hex.EncodeToString(pack.Buffer.Bytes())
-		log.Println(encodedStr)
 	})
 	client.StopHandles = append(client.StopHandles, func() {
 		pusher.ClearPlayer()

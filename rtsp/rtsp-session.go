@@ -123,6 +123,14 @@ type Session struct {
 	StopHandles []func()
 }
 
+func (session *Session) AddRTPHandles(f func(*RTPPack)) {
+	session.RTPHandles = append(session.RTPHandles, f)
+}
+
+func (session *Session) AddStopHandles(f func()) {
+	session.StopHandles = append(session.StopHandles, f)
+}
+
 func (session *Session) GetID() string {
 	return session.ID
 }

@@ -33,10 +33,10 @@ func NewPusher(session *Session) (pusher *Pusher) {
 		cond:  sync.NewCond(&sync.Mutex{}),
 		queue: make([]*RTPPack, 0),
 	}
-	session.RTPHandles = append(session.RTPHandles, func(pack *RTPPack) {
+	session.AddRTPHandles(func(pack *RTPPack) {
 		pusher.QueueRTP(pack)
 	})
-	session.StopHandles = append(session.StopHandles, func() {
+	session.AddStopHandles(func() {
 		pusher.Server.RemovePusher(pusher)
 		pusher.cond.Broadcast()
 		if pusher.UDPServer != nil {

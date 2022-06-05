@@ -31,6 +31,14 @@ func NewSessionPuller(server *Server, client *RTSPClient) *SessionPuller {
 	return puller
 }
 
+func (puller *SessionPuller) AddRTPHandles(f func(*RTPPack)) {
+	puller.RTPHandles = append(puller.RTPHandles, f)
+}
+
+func (puller *SessionPuller) AddStopHandles(f func()) {
+	puller.StopHandles = append(puller.StopHandles, f)
+}
+
 func (puller *SessionPuller) GetID() string {
 	return puller.Session.ID
 }

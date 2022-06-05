@@ -5,4 +5,6 @@ type BaseSession interface {
 	GetPath() string
 	Start()
 	Stop()
+	AddRTPHandles(func(*RTPPack))
+	AddStopHandles(func())
 }

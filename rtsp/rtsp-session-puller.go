@@ -4,7 +4,6 @@ import (
 	"github.com/onedss/EasyGoLib/utils"
 	"github.com/teris-io/shortid"
 	"log"
-	"sync"
 	"time"
 )
 
@@ -69,17 +68,35 @@ func (puller *SessionPuller) Stop() {
 
 func (puller *SessionPuller) Start() {
 	client := puller.RTSPClient
-	pusher := &Pusher{
-		//RTSPServer:     puller.Server,
-		//RTSPClient:     puller.RTSPClient,
-		Session:        puller.Session,
-		players:        make(map[string]*Player),
-		gopCacheEnable: utils.Conf().Section("rtsp").Key("gop_cache_enable").MustBool(true),
-		gopCache:       make([]*RTPPack, 0),
-
-		cond:  sync.NewCond(&sync.Mutex{}),
-		queue: make([]*RTPPack, 0),
+	if !client.InitFlag {
+		log.Printf("Pull to push fail.")
 	}
+	puller.SDPRaw = client.SDPRaw
+	puller.SDPMap = ParseSDP(client.SDPRaw)
+	sdp, ok := puller.SDPMap["audio"]
+	if ok {
+		puller.AControl = sdp.Control
+		puller.ACodec = sdp.Codec
+		log.Printf("audio codec[%s]\n", puller.ACodec)
+	}
+	sdp, ok = puller.SDPMap["video"]
+	if ok {
+		puller.VControl = sdp.Control
+		puller.VCodec = sdp.Codec
+		log.Printf("video codec[%s]\n", puller.VCodec)
+	}
+	//pusher := &Pusher{
+	//	//RTSPServer:     puller.Server,
+	//	//RTSPClient:     puller.RTSPClient,
+	//	Session:        puller.Session,
+	//	players:        make(map[string]*Player),
+	//	gopCacheEnable: utils.Conf().Section("rtsp").Key("gop_cache_enable").MustBool(true),
+	//	gopCache:       make([]*RTPPack, 0),
+	//
+	//	cond:  sync.NewCond(&sync.Mutex{}),
+	//	queue: make([]*RTPPack, 0),
+	//}
+	pusher := NewPusher(puller.Session)
 	client.RTPHandles = append(client.RTPHandles, func(pack *RTPPack) {
 		pusher.QueueRTP(pack)
 	})

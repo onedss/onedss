@@ -13,12 +13,9 @@ type SessionPuller struct {
 }
 
 func NewSessionPuller(server *Server, client *RTSPClient) *SessionPuller {
-	//networkBuffer := utils.Conf().Section("rtsp").Key("network_buffer").MustInt(1048576)
 	session := &Session{
-		ID:     shortid.MustGenerate(),
-		Server: server,
-		//Conn:    conn,
-		//connRW:  bufio.NewReadWriter(bufio.NewReaderSize(conn, networkBuffer), bufio.NewWriterSize(conn, networkBuffer)),
+		ID:      shortid.MustGenerate(),
+		Server:  server,
 		StartAt: time.Now(),
 		Timeout: utils.Conf().Section("rtsp").Key("timeout").MustInt(0),
 
@@ -85,17 +82,6 @@ func (puller *SessionPuller) Start() {
 		puller.VCodec = sdp.Codec
 		log.Printf("video codec[%s]\n", puller.VCodec)
 	}
-	//pusher := &Pusher{
-	//	//RTSPServer:     puller.Server,
-	//	//RTSPClient:     puller.RTSPClient,
-	//	Session:        puller.Session,
-	//	players:        make(map[string]*Player),
-	//	gopCacheEnable: utils.Conf().Section("rtsp").Key("gop_cache_enable").MustBool(true),
-	//	gopCache:       make([]*RTPPack, 0),
-	//
-	//	cond:  sync.NewCond(&sync.Mutex{}),
-	//	queue: make([]*RTPPack, 0),
-	//}
 	pusher := NewPusher(puller.Session)
 	client.RTPHandles = append(client.RTPHandles, func(pack *RTPPack) {
 		pusher.QueueRTP(pack)

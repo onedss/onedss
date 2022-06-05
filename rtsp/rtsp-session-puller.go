@@ -31,11 +31,11 @@ func NewSessionPuller(server *Server, client *RTSPClient) *SessionPuller {
 	return puller
 }
 
-func (puller *SessionPuller) ID() string {
+func (puller *SessionPuller) GetID() string {
 	return puller.Session.ID
 }
 
-func (puller *SessionPuller) Path() string {
+func (puller *SessionPuller) GetPath() string {
 	return puller.Session.Path
 }
 

@@ -123,6 +123,14 @@ type Session struct {
 	StopHandles []func()
 }
 
+func (session *Session) GetID() string {
+	return session.ID
+}
+
+func (session *Session) GetPath() string {
+	return session.Path
+}
+
 func (session *Session) GetConn() *net.TCPConn {
 	return session.privateConn
 }

@@ -1,6 +1,7 @@
 package rtsp
 
 import (
+	"encoding/hex"
 	"github.com/onedss/EasyGoLib/utils"
 	"github.com/teris-io/shortid"
 	"log"
@@ -30,6 +31,7 @@ func NewSessionPuller(server *Server, client *RTSPClient) *SessionPuller {
 	puller := &SessionPuller{
 		Session:    session,
 		RTSPClient: client,
+		path:       client.CustomPath,
 	}
 	return puller
 }
@@ -43,7 +45,7 @@ func (puller *SessionPuller) Path() string {
 }
 
 func (puller *SessionPuller) Stop() {
-	log.Println(puller.ID)
+	log.Println("Stop :", puller.ID)
 	if puller.Stoped {
 		return
 	}
@@ -60,10 +62,13 @@ func (puller *SessionPuller) Stop() {
 		puller.UDPClient.Stop()
 		puller.UDPClient = nil
 	}
+	if puller.RTSPClient != nil {
+		puller.RTSPClient.Stop()
+		puller.RTSPClient = nil
+	}
 }
 
 func (puller *SessionPuller) Start() {
-	defer puller.Stop()
 	pusher := &Pusher{
 		//RTSPServer:     puller.Server,
 		//RTSPClient:     puller.RTSPClient,
@@ -78,6 +83,8 @@ func (puller *SessionPuller) Start() {
 	client := puller.RTSPClient
 	client.RTPHandles = append(client.RTPHandles, func(pack *RTPPack) {
 		pusher.QueueRTP(pack)
+		encodedStr := hex.EncodeToString(pack.Buffer.Bytes())
+		log.Println(encodedStr)
 	})
 	client.StopHandles = append(client.StopHandles, func() {
 		pusher.ClearPlayer()

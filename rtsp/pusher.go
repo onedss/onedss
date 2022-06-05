@@ -1,7 +1,6 @@
 package rtsp
 
 import (
-	"encoding/hex"
 	"log"
 	"strings"
 	"sync"
@@ -36,8 +35,6 @@ func NewPusher(session *Session) (pusher *Pusher) {
 	}
 	session.RTPHandles = append(session.RTPHandles, func(pack *RTPPack) {
 		pusher.QueueRTP(pack)
-		encodedStr := hex.EncodeToString(pack.Buffer.Bytes())
-		log.Println(encodedStr)
 	})
 	session.StopHandles = append(session.StopHandles, func() {
 		pusher.Server.RemovePusher(pusher)

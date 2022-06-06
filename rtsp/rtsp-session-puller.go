@@ -106,6 +106,7 @@ func (puller *SessionPuller) Start() {
 		pusher.InBytes += pack.Buffer.Len()
 	})
 	client.StopHandles = append(client.StopHandles, func() {
+		pusher.Stoped = true
 		pusher.ClearPlayer()
 		pusher.GetServer().RemovePusher(pusher)
 		pusher.cond.Broadcast()

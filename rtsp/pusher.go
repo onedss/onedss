@@ -156,7 +156,7 @@ func (pusher *Pusher) GetSource() string {
 	return pusher.URL
 }
 
-func (pusher *Pusher) QueueRTP(pack *RTPPack) BasePusher {
+func (pusher *Pusher) QueueRTP(pack *RTPPack) *Pusher {
 	pusher.cond.L.Lock()
 	pusher.queue = append(pusher.queue, pack)
 	pusher.cond.Signal()
@@ -165,6 +165,7 @@ func (pusher *Pusher) QueueRTP(pack *RTPPack) BasePusher {
 }
 
 func (pusher *Pusher) Start() {
+	log.Println("Pusher Start() Begin...", pusher.ID)
 	for !pusher.Stoped {
 		var pack *RTPPack
 		pusher.cond.L.Lock()
@@ -201,17 +202,18 @@ func (pusher *Pusher) Start() {
 
 		pusher.BroadcastRTP(pack)
 	}
+	log.Println("Pusher Start() End.", pusher.ID)
 }
 
-func (pusher *Pusher) Stop() {
-	if pusher.Session != nil {
-		pusher.Session.Stop()
-		return
-	}
-	//pusher.RTSPClient.Stop()
-}
+//func (pusher *Pusher) Stop() {
+//	if pusher.Session != nil {
+//		pusher.Session.Stop()
+//		return
+//	}
+//	pusher.Stoped = true
+//}
 
-func (pusher *Pusher) BroadcastRTP(pack *RTPPack) BasePusher {
+func (pusher *Pusher) BroadcastRTP(pack *RTPPack) *Pusher {
 	for _, player := range pusher.GetPlayers() {
 		player.QueueRTP(pack)
 		pusher.OutBytes += pack.Buffer.Len()
@@ -229,7 +231,7 @@ func (pusher *Pusher) GetPlayers() (players map[string]*Player) {
 	return
 }
 
-func (pusher *Pusher) AddPlayer(player *Player) BasePusher {
+func (pusher *Pusher) AddPlayer(player *Player) *Pusher {
 	if pusher.gopCacheEnable {
 		pusher.gopCacheLock.RLock()
 		for _, pack := range pusher.gopCache {
@@ -249,7 +251,7 @@ func (pusher *Pusher) AddPlayer(player *Player) BasePusher {
 	return pusher
 }
 
-func (pusher *Pusher) RemovePlayer(player *Player) BasePusher {
+func (pusher *Pusher) RemovePlayer(player *Player) *Pusher {
 	pusher.playersLock.Lock()
 	delete(pusher.players, player.ID)
 	log.Printf("%v end, now player size[%d]\n", player, len(pusher.players))

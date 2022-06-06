@@ -13,14 +13,14 @@ type Server struct {
 	TCPListener *net.TCPListener
 	TCPPort     int
 	Stoped      bool
-	pushers     map[string]BasePusher // Path <-> Pusher
+	pushers     map[string]*Pusher // Path <-> Pusher
 	pushersLock sync.RWMutex
 }
 
 var Instance *Server = &Server{
 	Stoped:  true,
 	TCPPort: utils.Conf().Section("rtsp").Key("port").MustInt(554),
-	pushers: make(map[string]BasePusher),
+	pushers: make(map[string]*Pusher),
 }
 
 func GetServer() *Server {
@@ -67,11 +67,11 @@ func (server *Server) Stop() {
 		server.TCPListener = nil
 	}
 	server.pushersLock.Lock()
-	server.pushers = make(map[string]BasePusher)
+	server.pushers = make(map[string]*Pusher)
 	server.pushersLock.Unlock()
 }
 
-func (server *Server) AddPusher(pusher BasePusher) {
+func (server *Server) AddPusher(pusher *Pusher) {
 	server.pushersLock.Lock()
 	if _, ok := server.pushers[pusher.GetPath()]; !ok {
 		server.pushers[pusher.GetPath()] = pusher
@@ -81,7 +81,7 @@ func (server *Server) AddPusher(pusher BasePusher) {
 	server.pushersLock.Unlock()
 }
 
-func (server *Server) RemovePusher(pusher BasePusher) {
+func (server *Server) RemovePusher(pusher *Pusher) {
 	server.pushersLock.Lock()
 	if _pusher, ok := server.pushers[pusher.GetPath()]; ok && pusher.GetID() == _pusher.GetID() {
 		delete(server.pushers, pusher.GetPath())
@@ -90,15 +90,15 @@ func (server *Server) RemovePusher(pusher BasePusher) {
 	server.pushersLock.Unlock()
 }
 
-func (server *Server) GetPusher(path string) (pusher BasePusher) {
+func (server *Server) GetPusher(path string) (pusher *Pusher) {
 	server.pushersLock.RLock()
 	pusher = server.pushers[path]
 	server.pushersLock.RUnlock()
 	return
 }
 
-func (server *Server) GetPushers() (pushers map[string]BasePusher) {
-	pushers = make(map[string]BasePusher)
+func (server *Server) GetPushers() (pushers map[string]*Pusher) {
+	pushers = make(map[string]*Pusher)
 	server.pushersLock.RLock()
 	for k, v := range server.pushers {
 		pushers[k] = v

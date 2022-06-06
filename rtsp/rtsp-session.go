@@ -116,7 +116,7 @@ type Session struct {
 	vRTPChannel        int
 	vRTPControlChannel int
 
-	Pusher      BasePusher
+	Pusher      *Pusher
 	Player      *Player
 	UDPClient   *UDPClient
 	RTPHandles  []func(*RTPPack)

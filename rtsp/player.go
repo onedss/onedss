@@ -7,12 +7,12 @@ import (
 
 type Player struct {
 	*Session
-	Pusher BasePusher
+	Pusher *Pusher
 	cond   *sync.Cond
 	queue  []*RTPPack
 }
 
-func NewPlayer(session *Session, pusher BasePusher) (player *Player) {
+func NewPlayer(session *Session, pusher *Pusher) (player *Player) {
 	player = &Player{
 		Session: session,
 		Pusher:  pusher,

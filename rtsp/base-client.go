@@ -1,8 +1,6 @@
 package rtsp
 
-type BaseSession interface {
-	GetID() string
-	GetPath() string
+type BaseClient interface {
 	Start()
 	Stop()
 	AddRTPHandles(func(*RTPPack))

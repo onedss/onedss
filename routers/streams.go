@@ -75,8 +75,8 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	default:
 		client.TransType = rtsp.TRANS_TYPE_TCP
 	}
-	puller := rtsp.NewSessionPuller(rtsp.GetServer(), client)
-	if rtsp.GetServer().GetPusher(puller.GetPath()) != nil {
+	sessionPuller := rtsp.NewSessionPuller(rtsp.GetServer(), client)
+	if rtsp.GetServer().GetPusher(sessionPuller.GetPath()) != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Path %s already exists", client.Path))
 		return
 	}
@@ -87,10 +87,10 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 		return
 	}
 	log.Printf("Pull to push %v success ", form)
-	go puller.Start()
+	go sessionPuller.Start()
 	// save to db.
 	saveToDatabase(form)
-	c.IndentedJSON(200, puller.GetID())
+	c.IndentedJSON(200, sessionPuller.GetID())
 }
 
 func saveToDatabase(form StreamStartForm) {

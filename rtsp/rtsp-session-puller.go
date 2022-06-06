@@ -48,35 +48,40 @@ func (puller *SessionPuller) GetPath() string {
 }
 
 func (puller *SessionPuller) Stop() {
-	//	log.Println("Stop :", puller.ID)
-	//	if puller.Stoped {
-	//		return
-	//	}
-	//	puller.Stoped = true
-	//	for _, h := range puller.StopHandles {
-	//		h()
-	//	}
-	//	if puller.privateConn != nil {
-	//		puller.connRW.Flush()
-	//		puller.privateConn.Close()
-	//		puller.privateConn = nil
-	//	}
-	//	if puller.UDPClient != nil {
-	//		puller.UDPClient.Stop()
-	//		puller.UDPClient = nil
-	//	}
-	//	if puller.RTSPClient != nil {
-	//		puller.RTSPClient.Stop()
-	//		puller.RTSPClient = nil
-	//	}
+	log.Println("Puller Stopped :", puller.ID)
+	if puller.Stoped {
+		return
+	}
+	puller.Stoped = true
+	for _, h := range puller.StopHandles {
+		h()
+	}
+	if puller.privateConn != nil {
+		puller.connRW.Flush()
+		puller.privateConn.Close()
+		puller.privateConn = nil
+	}
+	if puller.UDPClient != nil {
+		puller.UDPClient.Stop()
+		puller.UDPClient = nil
+	}
+	if puller.RTSPClient != nil {
+		puller.RTSPClient.Stop()
+		puller.RTSPClient = nil
+	}
 }
 
 func (puller *SessionPuller) Start() {
 	client := puller.RTSPClient
 	if !client.InitFlag {
 		log.Printf("Pull to push fail.")
+		return
 	}
-	puller.Path = client.CustomPath
+	if client.CustomPath != "" {
+		puller.Path = client.CustomPath
+	} else {
+		puller.Path = client.Path
+	}
 	puller.URL = client.URL
 	puller.SDPRaw = client.SDPRaw
 	puller.SDPMap = ParseSDP(client.SDPRaw)
@@ -93,6 +98,9 @@ func (puller *SessionPuller) Start() {
 		log.Printf("video codec[%s]\n", puller.VCodec)
 	}
 	pusher := NewPusher(puller.Session)
+	pusher.StopHandles = append(pusher.StopHandles, func() {
+		puller.Stop()
+	})
 	client.RTPHandles = append(client.RTPHandles, func(pack *RTPPack) {
 		pusher.QueueRTP(pack)
 		pusher.InBytes += pack.Buffer.Len()

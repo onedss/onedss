@@ -21,8 +21,6 @@ func NewSessionPuller(server *Server, client *RTSPClient) *SessionPuller {
 
 		RTPHandles:  make([]func(*RTPPack), 0),
 		StopHandles: make([]func(), 0),
-		//Path:        client.CustomPath,
-		//URL:         client.URL,
 	}
 	puller := &SessionPuller{
 		Session:    session,

@@ -46,26 +46,17 @@ func (puller *SessionPuller) GetPath() string {
 }
 
 func (puller *SessionPuller) Stop() {
-	log.Println("Puller Stopped :", puller.ID)
+	log.Println("Puller Stopped :", puller.ID, "Stoped=", puller.Stoped)
+	if puller.RTSPClient != nil {
+		puller.RTSPClient.Stop()
+		puller.RTSPClient = nil
+	}
 	if puller.Stoped {
 		return
 	}
 	puller.Stoped = true
 	for _, h := range puller.StopHandles {
 		h()
-	}
-	if puller.privateConn != nil {
-		puller.connRW.Flush()
-		puller.privateConn.Close()
-		puller.privateConn = nil
-	}
-	if puller.UDPClient != nil {
-		puller.UDPClient.Stop()
-		puller.UDPClient = nil
-	}
-	if puller.RTSPClient != nil {
-		puller.RTSPClient.Stop()
-		puller.RTSPClient = nil
 	}
 }
 

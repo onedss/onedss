@@ -49,14 +49,37 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 		log.Printf("Pull to push err:%v", err)
 		return
 	}
-	agent := fmt.Sprintf("EasyDarwinGo/%s", BuildVersion)
+	client, err := h.createPullerClient(form)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	sessionPuller := rtsp.NewSessionPuller(rtsp.GetServer(), client)
+	if rtsp.GetServer().GetPusher(sessionPuller.GetPath()) != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Path %s already exists", client.Path))
+		return
+	}
+	err = client.Init(time.Duration(form.IdleTimeout) * time.Second)
+	if err != nil {
+		log.Printf("Pull stream err :%v", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Pull stream err: %v", err))
+		return
+	}
+	log.Printf("Pull to push %v success ", form)
+	go sessionPuller.Start()
+	// save to db.
+	saveToDatabase(form)
+	c.IndentedJSON(200, sessionPuller.GetID())
+}
+
+func (h *APIHandler) createPullerClient(form StreamStartForm) (*rtsp.RTSPClient, error) {
+	agent := fmt.Sprintf("OneDSS Client/%s", BuildVersion)
 	if BuildDateTime != "" {
 		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)
 	}
 	client, err := rtsp.NewRTSPClient(form.URL, int64(form.HeartbeatInterval)*1000, agent)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
-		return
+		return nil, err
 	}
 	if form.UdpHostPort != "" {
 		hostPort := strings.ReplaceAll(form.UdpHostPort, ".", "_")
@@ -75,22 +98,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	default:
 		client.TransType = rtsp.TRANS_TYPE_TCP
 	}
-	sessionPuller := rtsp.NewSessionPuller(rtsp.GetServer(), client)
-	if rtsp.GetServer().GetPusher(sessionPuller.GetPath()) != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Path %s already exists", client.Path))
-		return
-	}
-	err = client.Init(time.Duration(form.IdleTimeout) * time.Second)
-	if err != nil {
-		log.Printf("Pull stream err :%v", err)
-		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Pull stream err: %v", err))
-		return
-	}
-	log.Printf("Pull to push %v success ", form)
-	go sessionPuller.Start()
-	// save to db.
-	saveToDatabase(form)
-	c.IndentedJSON(200, sessionPuller.GetID())
+	return client, nil
 }
 
 func saveToDatabase(form StreamStartForm) {

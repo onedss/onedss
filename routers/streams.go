@@ -49,7 +49,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 		log.Printf("Pull to push err:%v", err)
 		return
 	}
-	client, err := h.createPullerClient(form)
+	client, err := createPullerClient(form)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
@@ -72,7 +72,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	c.IndentedJSON(200, sessionPuller.GetID())
 }
 
-func (h *APIHandler) createPullerClient(form StreamStartForm) (*rtsp.RTSPClient, error) {
+func createPullerClient(form StreamStartForm) (*rtsp.RTSPClient, error) {
 	agent := fmt.Sprintf("OneDSS Client/%s", BuildVersion)
 	if BuildDateTime != "" {
 		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)

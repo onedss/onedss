@@ -71,6 +71,33 @@ func (client *RTSPClient) String() string {
 	return fmt.Sprintf("client[%s]", client.URL)
 }
 
+func (client *RTSPClient) GetPath() string {
+	return client.Path
+}
+
+func (client *RTSPClient) GetInitFlag() bool {
+	return client.InitFlag
+}
+
+func (client *RTSPClient) GetCustomPath() string {
+	return client.CustomPath
+}
+
+func (client *RTSPClient) GetURL() string {
+	return client.URL
+}
+
+func (client *RTSPClient) GetSDPRaw() string {
+	return client.SDPRaw
+}
+
+func (client *RTSPClient) AddRTPHandles(f func(*RTPPack)) {
+	client.RTPHandles = append(client.RTPHandles, f)
+}
+func (client *RTSPClient) AddStopHandles(f func()) {
+	client.StopHandles = append(client.StopHandles, f)
+}
+
 func NewRTSPClient(rawUrl string, sendOptionMillis int64, agent string) (client *RTSPClient, err error) {
 	url, err := url.Parse(rawUrl)
 	if err != nil {

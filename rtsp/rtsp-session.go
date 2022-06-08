@@ -20,11 +20,6 @@ import (
 	"github.com/teris-io/shortid"
 )
 
-type RTPPack struct {
-	Type   RTPType
-	Buffer *bytes.Buffer
-}
-
 type SessionType int
 
 const (
@@ -38,29 +33,6 @@ func (st SessionType) String() string {
 		return "pusher"
 	case SESSEION_TYPE_PLAYER:
 		return "player"
-	}
-	return "unknow"
-}
-
-type RTPType int
-
-const (
-	RTP_TYPE_AUDIO RTPType = iota
-	RTP_TYPE_VIDEO
-	RTP_TYPE_AUDIOCONTROL
-	RTP_TYPE_VIDEOCONTROL
-)
-
-func (rt RTPType) String() string {
-	switch rt {
-	case RTP_TYPE_AUDIO:
-		return "audio"
-	case RTP_TYPE_VIDEO:
-		return "video"
-	case RTP_TYPE_AUDIOCONTROL:
-		return "audio control"
-	case RTP_TYPE_VIDEOCONTROL:
-		return "video control"
 	}
 	return "unknow"
 }

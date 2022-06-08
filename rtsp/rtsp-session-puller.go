@@ -2,7 +2,6 @@ package rtsp
 
 import (
 	"github.com/onedss/EasyGoLib/utils"
-	"github.com/onedss/onedss/core"
 	"github.com/teris-io/shortid"
 	"log"
 	"time"
@@ -10,10 +9,10 @@ import (
 
 type SessionPuller struct {
 	*Session
-	RTSPClient core.BaseClient
+	RTSPClient BaseClient
 }
 
-func NewSessionPuller(server *Server, client core.BaseClient) *SessionPuller {
+func NewSessionPuller(server *Server, client BaseClient) *SessionPuller {
 	session := &Session{
 		ID:      shortid.MustGenerate(),
 		Server:  server,

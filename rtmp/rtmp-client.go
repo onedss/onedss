@@ -83,38 +83,40 @@ func (client *RTMPClient) Init(timeout time.Duration) error {
 		option.PullTimeoutMs = 30000
 		option.ReadAvTimeoutMs = 30000
 	})
-	err := pullSession.Pull(client.URL, func(msg base.RtmpMsg) {
-		if msg.Header.MsgTypeId == base.RtmpTypeIdMetadata {
-			// noop
-			return
-		}
-		if msg.Header.MsgTypeId == base.RtmpTypeIdAudio {
-			controlByte := msg.Payload[0]
-			control := parseRtmpControl(controlByte)
-			pkg := base.AvPacket{
-				Timestamp:   msg.Header.TimestampAbs,
-				PayloadType: (base.AvPacketPt)(control.PacketType),
-				Payload:     msg.Payload[1:],
-			}
-			payload := make([]byte, 4+len(pkg.Payload))
-			copy(payload[4:], pkg.Payload)
-			//timeUnix:=time.Now().UnixNano() / 1e6
-			//nazalog.Println(timeUnix)
-			h := rtprtcp.MakeDefaultRtpHeader()
-			h.Mark = 0
-			packetType := control.PacketType
-			h.PacketType = packetType
-			//h.Seq = r.genSeq()
-			sampleRate := control.SampleRate
-			channelNum := control.ChannelNum
-			h.Timestamp = uint32(float64(pkg.Timestamp) * sampleRate * float64(channelNum))
-			//h.Ssrc = r.audioSsrc
-			//pkt := rtprtcp.MakeRtpPacket(h, payload)
-			encodedStr := hex.EncodeToString(payload)
-			log.Println(encodedStr)
-		}
-	})
+	err := pullSession.Pull(client.URL, onReadRtmpAvMsg)
 	return err
+}
+
+func onReadRtmpAvMsg(msg base.RtmpMsg) {
+	if msg.Header.MsgTypeId == base.RtmpTypeIdMetadata {
+		// noop
+		return
+	}
+	if msg.Header.MsgTypeId == base.RtmpTypeIdAudio {
+		controlByte := msg.Payload[0]
+		control := parseRtmpControl(controlByte)
+		pkg := base.AvPacket{
+			Timestamp:   msg.Header.TimestampAbs,
+			PayloadType: (base.AvPacketPt)(control.PacketType),
+			Payload:     msg.Payload[1:],
+		}
+		payload := make([]byte, 4+len(pkg.Payload))
+		copy(payload[4:], pkg.Payload)
+		//timeUnix:=time.Now().UnixNano() / 1e6
+		//nazalog.Println(timeUnix)
+		h := rtprtcp.MakeDefaultRtpHeader()
+		h.Mark = 0
+		packetType := control.PacketType
+		h.PacketType = packetType
+		//h.Seq = r.genSeq()
+		sampleRate := control.SampleRate
+		channelNum := control.ChannelNum
+		h.Timestamp = uint32(float64(pkg.Timestamp) * sampleRate * float64(channelNum))
+		//h.Ssrc = r.audioSsrc
+		//pkt := rtprtcp.MakeRtpPacket(h, payload)
+		encodedStr := hex.EncodeToString(payload)
+		log.Println(encodedStr)
+	}
 }
 
 func parseRtmpControl(control byte) rtprtcp.RtpControl {

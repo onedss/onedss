@@ -1,6 +1,9 @@
-package rtsp
+package core
 
-import "time"
+import (
+	"github.com/onedss/onedss/rtsp"
+	"time"
+)
 
 type BaseClient interface {
 	String() string
@@ -15,6 +18,6 @@ type BaseClient interface {
 	Stop()
 	Init(timeout time.Duration) (err error)
 
-	AddRTPHandles(func(*RTPPack))
+	AddRTPHandles(func(*rtsp.RTPPack))
 	AddStopHandles(func())
 }

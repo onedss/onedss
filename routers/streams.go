@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/onedss/EasyGoLib/db"
+	"github.com/onedss/onedss/core"
 	"github.com/onedss/onedss/models"
 	"github.com/onedss/onedss/rtsp"
 	"log"
@@ -57,7 +58,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
-	var client rtsp.BaseClient
+	var client core.BaseClient
 	if l.Scheme == "rtsp" {
 		client, err = createPullerClient(form)
 		if err != nil {
@@ -92,7 +93,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 //
 //}
 
-func createPullerClient(form StreamStartForm) (rtsp.BaseClient, error) {
+func createPullerClient(form StreamStartForm) (core.BaseClient, error) {
 	agent := fmt.Sprintf("OneDSS Client/%s", BuildVersion)
 	if BuildDateTime != "" {
 		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)

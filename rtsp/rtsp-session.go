@@ -87,7 +87,7 @@ const UDP_BUF_SIZE = 1048576
 type Session struct {
 	ID          string
 	Server      *Server
-	privateConn *net.TCPConn
+	privateConn *RichConn
 	connRW      *bufio.ReadWriter
 	connWLock   sync.RWMutex
 	Type        SessionType
@@ -139,21 +139,27 @@ func (session *Session) GetPath() string {
 	return session.Path
 }
 
-func (session *Session) GetConn() *net.TCPConn {
+func (session *Session) GetConn() *RichConn {
 	return session.privateConn
 }
 
 func (session *Session) String() string {
-	return fmt.Sprintf("session[%v][%v][%s][%s]", session.Type, session.TransType, session.Path, session.ID)
+	if session.privateConn != nil {
+		return fmt.Sprintf("session[%v][%v][%s][%s][%s]", session.Type, session.TransType, session.Path, session.ID, session.privateConn.RemoteAddr().String())
+	} else {
+		return fmt.Sprintf("session[%v][%v][%s][%s]", session.Type, session.TransType, session.Path, session.ID)
+	}
 }
 
 func NewSession(server *Server, conn *net.TCPConn) *Session {
-	networkBuffer := utils.Conf().Section("rtsp").Key("network_buffer").MustInt(1048576)
+	networkBuffer := utils.Conf().Section("rtsp").Key("network_buffer").MustInt(204800)
+	timeoutMillis := utils.Conf().Section("rtsp").Key("timeout").MustInt(0)
+	timeoutTCPConn := &RichConn{conn, time.Duration(timeoutMillis) * time.Millisecond}
 	session := &Session{
 		ID:          shortid.MustGenerate(),
 		Server:      server,
-		privateConn: conn,
-		connRW:      bufio.NewReadWriter(bufio.NewReaderSize(conn, networkBuffer), bufio.NewWriterSize(conn, networkBuffer)),
+		privateConn: timeoutTCPConn,
+		connRW:      bufio.NewReadWriter(bufio.NewReaderSize(timeoutTCPConn, networkBuffer), bufio.NewWriterSize(timeoutTCPConn, networkBuffer)),
 		StartAt:     time.Now(),
 		Timeout:     utils.Conf().Section("rtsp").Key("timeout").MustInt(0),
 
@@ -283,9 +289,9 @@ func (session *Session) Start() {
 }
 
 func (session *Session) handleRequest(req *Request) {
-	if session.Timeout > 0 {
-		session.privateConn.SetDeadline(time.Now().Add(time.Duration(session.Timeout) * time.Second))
-	}
+	//if session.Timeout > 0 {
+	//	session.privateConn.SetDeadline(time.Now().Add(time.Duration(session.Timeout) * time.Second))
+	//}
 
 	log.Println("<<<", req)
 	res := NewResponse(200, "OK", req.Header["CSeq"], session.ID, "")
@@ -373,6 +379,7 @@ func (session *Session) handleRequest(req *Request) {
 		session.VControl = pusher.GetVControl()
 		session.ACodec = pusher.GetACodec()
 		session.VCodec = pusher.GetVCodec()
+		session.privateConn.timeout = 0
 		res.SetBody(session.Pusher.GetSDPRaw())
 	case "SETUP":
 		ts := req.Header["Transport"]
@@ -391,6 +398,8 @@ func (session *Session) handleRequest(req *Request) {
 			}
 		} else if udpMatchs := mudp.FindStringSubmatch(ts); udpMatchs != nil {
 			session.TransType = TRANS_TYPE_UDP
+			// no need for tcp timeout.
+			session.privateConn.timeout = 0
 			if session.UDPClient == nil {
 				session.UDPClient = &UDPClient{
 					Session: session,

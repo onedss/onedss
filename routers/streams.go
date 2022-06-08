@@ -56,7 +56,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	}
 	sessionPuller := rtsp.NewSessionPuller(rtsp.GetServer(), client)
 	if rtsp.GetServer().GetPusher(sessionPuller.GetPath()) != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Path %s already exists", client.Path))
+		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Path %s already exists", client.GetPath()))
 		return
 	}
 	err = client.Init(time.Duration(form.IdleTimeout) * time.Second)
@@ -72,7 +72,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	c.IndentedJSON(200, sessionPuller.GetID())
 }
 
-func createPullerClient(form StreamStartForm) (*rtsp.RTSPClient, error) {
+func createPullerClient(form StreamStartForm) (rtsp.BaseClient, error) {
 	agent := fmt.Sprintf("OneDSS Client/%s", BuildVersion)
 	if BuildDateTime != "" {
 		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)

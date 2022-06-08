@@ -9,10 +9,10 @@ import (
 
 type SessionPuller struct {
 	*Session
-	RTSPClient *RTSPClient
+	RTSPClient BaseClient
 }
 
-func NewSessionPuller(server *Server, client *RTSPClient) *SessionPuller {
+func NewSessionPuller(server *Server, client BaseClient) *SessionPuller {
 	session := &Session{
 		ID:      shortid.MustGenerate(),
 		Server:  server,
@@ -62,18 +62,18 @@ func (puller *SessionPuller) Stop() {
 
 func (puller *SessionPuller) Start() {
 	client := puller.RTSPClient
-	if !client.InitFlag {
+	if !client.GetInitFlag() {
 		log.Printf("Pull to push fail.")
 		return
 	}
-	if client.CustomPath != "" {
-		puller.Path = client.CustomPath
+	if client.GetCustomPath() != "" {
+		puller.Path = client.GetCustomPath()
 	} else {
-		puller.Path = client.Path
+		puller.Path = client.GetPath()
 	}
-	puller.URL = client.URL
-	puller.SDPRaw = client.SDPRaw
-	puller.SDPMap = ParseSDP(client.SDPRaw)
+	puller.URL = client.GetURL()
+	puller.SDPRaw = client.GetSDPRaw()
+	puller.SDPMap = ParseSDP(client.GetSDPRaw())
 	sdp, ok := puller.SDPMap["audio"]
 	if ok {
 		puller.AControl = sdp.Control
@@ -90,11 +90,11 @@ func (puller *SessionPuller) Start() {
 	pusher.StopHandles = append(pusher.StopHandles, func() {
 		puller.Stop()
 	})
-	client.RTPHandles = append(client.RTPHandles, func(pack *RTPPack) {
+	client.AddRTPHandles(func(pack *RTPPack) {
 		pusher.QueueRTP(pack)
 		pusher.InBytes += pack.Buffer.Len()
 	})
-	client.StopHandles = append(client.StopHandles, func() {
+	client.AddStopHandles(func() {
 		pusher.Stoped = true
 		pusher.ClearPlayer()
 		pusher.GetServer().RemovePusher(pusher)

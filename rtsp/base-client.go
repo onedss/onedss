@@ -1,5 +1,7 @@
 package rtsp
 
+import "time"
+
 type BaseClient interface {
 	String() string
 
@@ -11,6 +13,7 @@ type BaseClient interface {
 
 	Start() bool
 	Stop()
+	Init(timeout time.Duration) (err error)
 
 	AddRTPHandles(func(*RTPPack))
 	AddStopHandles(func())

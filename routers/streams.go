@@ -8,6 +8,7 @@ import (
 	"github.com/onedss/onedss/rtsp"
 	"log"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 )
@@ -47,11 +48,26 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	err := c.Bind(&form)
 	if err != nil {
 		log.Printf("Pull to push err:%v", err)
+		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 		return
 	}
-	client, err := createPullerClient(form)
+	l, err := url.Parse(form.URL)
 	if err != nil {
+		log.Printf("Url parse error:%v,%v", form.URL, err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	var client rtsp.BaseClient
+	if l.Scheme == "rtsp" {
+		client, err = createPullerClient(form)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+			return
+		}
+	} else if l.Scheme == "rtmp" {
+
+	} else {
+		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Unknown Scheme : %s", form.URL))
 		return
 	}
 	sessionPuller := rtsp.NewSessionPuller(rtsp.GetServer(), client)
@@ -71,6 +87,10 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	saveToDatabase(form)
 	c.IndentedJSON(200, sessionPuller.GetID())
 }
+
+//func createRtmpClient(form StreamStartForm) (rtsp.BaseClient, error) {
+//
+//}
 
 func createPullerClient(form StreamStartForm) (rtsp.BaseClient, error) {
 	agent := fmt.Sprintf("OneDSS Client/%s", BuildVersion)

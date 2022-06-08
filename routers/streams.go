@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/onedss/EasyGoLib/db"
 	"github.com/onedss/onedss/models"
+	"github.com/onedss/onedss/rtmp"
 	"github.com/onedss/onedss/rtsp"
 	"log"
 	"net/http"
@@ -59,13 +60,17 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	}
 	var client rtsp.BaseClient
 	if l.Scheme == "rtsp" {
-		client, err = createPullerClient(form)
+		client, err = createRTSPClient(form)
 		if err != nil {
 			c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 			return
 		}
 	} else if l.Scheme == "rtmp" {
-
+		client, err = createRtmpClient(form)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
+			return
+		}
 	} else {
 		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Unknown Scheme : %s", form.URL))
 		return
@@ -88,11 +93,28 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	c.IndentedJSON(200, sessionPuller.GetID())
 }
 
-//func createRtmpClient(form StreamStartForm) (rtsp.BaseClient, error) {
-//
-//}
+func createRtmpClient(form StreamStartForm) (rtsp.BaseClient, error) {
+	agent := fmt.Sprintf("OneDSS Client/%s", BuildVersion)
+	if BuildDateTime != "" {
+		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)
+	}
+	client, err := rtmp.NewRTMPClient(form.URL, int64(form.HeartbeatInterval)*1000, agent)
+	if err != nil {
+		return nil, err
+	}
+	if form.UdpHostPort != "" {
+		hostPort := strings.ReplaceAll(form.UdpHostPort, ".", "_")
+		form.CustomPath = strings.ReplaceAll(hostPort, ":", "_")
+	}
+	if form.CustomPath != "" && !strings.HasPrefix(form.CustomPath, "/") {
+		form.CustomPath = "/" + form.CustomPath
+	}
+	client.CustomPath = form.CustomPath
+	client.UdpHostPort = form.UdpHostPort
+	return client, nil
+}
 
-func createPullerClient(form StreamStartForm) (rtsp.BaseClient, error) {
+func createRTSPClient(form StreamStartForm) (rtsp.BaseClient, error) {
 	agent := fmt.Sprintf("OneDSS Client/%s", BuildVersion)
 	if BuildDateTime != "" {
 		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)

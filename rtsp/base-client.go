@@ -44,7 +44,7 @@ type BaseClient interface {
 
 	Start() bool
 	Stop()
-	Init(timeout time.Duration) (err error)
+	Init(timeout time.Duration) error
 
 	AddRTPHandles(func(*RTPPack))
 	AddStopHandles(func())

@@ -1,12 +1,14 @@
 package rtmp
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 	"github.com/onedss/onedss/lal/base"
 	"github.com/onedss/onedss/rtprtcp"
 	"github.com/onedss/onedss/rtsp"
 	"log"
+	"math/rand"
 	"net/url"
 	"time"
 )
@@ -19,7 +21,12 @@ type RTMPClient struct {
 	SDPRaw      string
 	InitFlag    bool
 
-	Agent string
+	Agent     string
+	audioSsrc uint32
+	videoSsrc uint32
+	seq       uint16
+	InBytes   int
+	OutBytes  int
 
 	RTPHandles  []func(*rtsp.RTPPack)
 	StopHandles []func()
@@ -60,14 +67,16 @@ func (client *RTMPClient) AddStopHandles(f func()) {
 func NewRTMPClient(rawUrl string, sendOptionMillis int64, agent string) (client *RTMPClient, err error) {
 	url, err := url.Parse(rawUrl)
 	if err != nil {
-		return
+		return nil, err
 	}
 	client = &RTMPClient{
-		URL:   rawUrl,
-		Path:  url.Path,
-		Agent: agent,
+		URL:       rawUrl,
+		Path:      url.Path,
+		Agent:     agent,
+		audioSsrc: rand.Uint32(),
+		videoSsrc: rand.Uint32(),
 	}
-	return
+	return client, nil
 }
 
 func (client *RTMPClient) Start() bool {
@@ -83,11 +92,11 @@ func (client *RTMPClient) Init(timeout time.Duration) error {
 		option.PullTimeoutMs = 30000
 		option.ReadAvTimeoutMs = 30000
 	})
-	err := pullSession.Pull(client.URL, onReadRtmpAvMsg)
+	err := pullSession.Pull(client.URL, client.onReadRtmpAvMsg)
 	return err
 }
 
-func onReadRtmpAvMsg(msg base.RtmpMsg) {
+func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {
 	if msg.Header.MsgTypeId == base.RtmpTypeIdMetadata {
 		// noop
 		return
@@ -103,20 +112,37 @@ func onReadRtmpAvMsg(msg base.RtmpMsg) {
 		payload := make([]byte, 4+len(pkg.Payload))
 		copy(payload[4:], pkg.Payload)
 		//timeUnix:=time.Now().UnixNano() / 1e6
-		//nazalog.Println(timeUnix)
+		//log.Println(timeUnix)
 		h := rtprtcp.MakeDefaultRtpHeader()
 		h.Mark = 0
 		packetType := control.PacketType
 		h.PacketType = packetType
-		//h.Seq = r.genSeq()
+		h.Seq = client.genSeq()
 		sampleRate := control.SampleRate
 		channelNum := control.ChannelNum
 		h.Timestamp = uint32(float64(pkg.Timestamp) * sampleRate * float64(channelNum))
-		//h.Ssrc = r.audioSsrc
-		//pkt := rtprtcp.MakeRtpPacket(h, payload)
-		encodedStr := hex.EncodeToString(payload)
+		h.Ssrc = client.audioSsrc
+		pkt := rtprtcp.MakeRtpPacket(h, payload)
+
+		encodedStr := hex.EncodeToString(pkt.Raw)
 		log.Println(encodedStr)
+
+		rtpBuf := bytes.NewBuffer(pkt.Raw)
+		pack := &rtsp.RTPPack{
+			Type:   rtsp.RTP_TYPE_AUDIO,
+			Buffer: rtpBuf,
+		}
+		//client.InBytes += int(length + 4)
+		for _, h := range client.RTPHandles {
+			h(pack)
+		}
 	}
+}
+
+func (client *RTMPClient) genSeq() (ret uint16) {
+	client.seq++
+	ret = client.seq
+	return
 }
 
 func parseRtmpControl(control byte) rtprtcp.RtpControl {

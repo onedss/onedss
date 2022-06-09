@@ -439,5 +439,5 @@ func (c *connection) close(err error) {
 }
 
 func init() {
-	uniqueGen = unique.NewSingleGenerator("NAZACONN")
+	uniqueGen = unique.NewSingleGenerator("RTMP-CONN")
 }

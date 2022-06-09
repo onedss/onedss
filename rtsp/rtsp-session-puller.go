@@ -1,6 +1,7 @@
 package rtsp
 
 import (
+	"encoding/hex"
 	"github.com/onedss/EasyGoLib/utils"
 	"github.com/teris-io/shortid"
 	"log"
@@ -93,6 +94,9 @@ func (puller *SessionPuller) Start() {
 	client.AddRTPHandles(func(pack *RTPPack) {
 		pusher.QueueRTP(pack)
 		pusher.InBytes += pack.Buffer.Len()
+
+		encodedStr := hex.EncodeToString(pack.Buffer.Bytes())
+		log.Println(encodedStr)
 	})
 	client.AddStopHandles(func() {
 		pusher.Stoped = true

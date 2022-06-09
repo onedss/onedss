@@ -73,12 +73,11 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 		}
 		err = client.Init(time.Duration(form.IdleTimeout) * time.Second)
 		if err != nil {
-			log.Printf("Pull stream err :%v", err)
+			log.Printf("Pull rtmp stream err :%v", err)
 			c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Pull stream err: %v", err))
 			return
 		}
-		log.Printf("Pull to push %v success ", form)
-		return
+		log.Printf("Pull rtmp stream %v success ", form)
 	} else {
 		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Unknown Scheme : %s", form.URL))
 		return

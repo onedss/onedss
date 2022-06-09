@@ -18,7 +18,7 @@ func main() {
 	log.SetPrefix("[EasyDarwin] ")
 	log.SetFlags(log.LstdFlags)
 	if utils.Debug {
-		log.SetFlags(log.Lshortfile | log.LstdFlags)
+		log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
 	}
 	logger.Info("git commit code :", gitCommitCode)
 	logger.Info("build date :", buildDateTime)

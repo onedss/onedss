@@ -6,6 +6,7 @@ import (
 	"github.com/onedss/onedss/lal/base"
 	"github.com/onedss/onedss/rtprtcp"
 	"github.com/onedss/onedss/rtsp"
+	"log"
 	"math/rand"
 	"net/url"
 	"strings"
@@ -77,6 +78,13 @@ func NewRTMPClient(rawUrl string, sendOptionMillis int64, agent string) (client 
 		Agent:     agent,
 		audioSsrc: rand.Uint32(),
 		videoSsrc: rand.Uint32(),
+		SDPRaw: `v=0
+o=- 0 0 IN IP4 127.0.0.1
+c=IN IP4 127.0.0.1
+t=0 0
+m=audio 0 RTP/AVP 14
+a=control:trackID=1
+`,
 	}
 	return client, nil
 }
@@ -102,22 +110,23 @@ func (client *RTMPClient) Init(timeout time.Duration) error {
 }
 
 func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {
-	controlByte := msg.Payload[0]
-	control := parseRtmpControl(controlByte)
-	pkg := base.AvPacket{
-		Timestamp:   msg.Header.TimestampAbs,
-		PayloadType: (base.AvPacketPt)(control.PacketType),
-		Payload:     msg.Payload[1:],
-	}
-	if !client.isFirstPack {
-		client.isFirstPack = true
-		client.SDPRaw = client.NewSdp(control.PacketType)
-	}
 	if msg.Header.MsgTypeId == base.RtmpTypeIdMetadata {
 		// noop
 		return
 	}
 	if msg.Header.MsgTypeId == base.RtmpTypeIdAudio {
+		controlByte := msg.Payload[0]
+		control := parseRtmpControl(controlByte)
+		pkg := base.AvPacket{
+			Timestamp:   msg.Header.TimestampAbs,
+			PayloadType: (base.AvPacketPt)(control.PacketType),
+			Payload:     msg.Payload[1:],
+		}
+		if !client.isFirstPack {
+			client.isFirstPack = true
+			client.SDPRaw = client.NewSdp(control.PacketType)
+			log.Println(client.SDPRaw)
+		}
 		payload := make([]byte, 4+len(pkg.Payload))
 		copy(payload[4:], pkg.Payload)
 		//timeUnix:=time.Now().UnixNano() / 1e6

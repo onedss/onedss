@@ -18,7 +18,7 @@ import (
  * @apiDefine stream 流管理
  */
 
-type StreamStartForm struct {
+type StreamStartRequest struct {
 	URL               string `form:"url" binding:"required"`
 	CustomPath        string `form:"customPath"`
 	UdpHostPort       string `form:"udpHostPort"`
@@ -27,7 +27,7 @@ type StreamStartForm struct {
 	HeartbeatInterval int    `form:"heartbeatInterval"`
 }
 
-type StreamStopForm struct {
+type StreamStopRequest struct {
 	ID string `form:"id" binding:"required"`
 }
 
@@ -45,7 +45,7 @@ type StreamStopForm struct {
  * @apiSuccess (200) {String} ID	拉流的ID。后续可以通过该ID来停止拉流
  */
 func (h *APIHandler) StreamStart(c *gin.Context) {
-	var form StreamStartForm
+	var form StreamStartRequest
 	err := c.Bind(&form)
 	if err != nil {
 		log.Printf("Pull to push err:%v", err)
@@ -71,13 +71,6 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 			c.AbortWithStatusJSON(http.StatusBadRequest, err.Error())
 			return
 		}
-		err = client.Init(time.Duration(form.IdleTimeout) * time.Second)
-		if err != nil {
-			log.Printf("Pull rtmp stream err :%v", err)
-			c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Pull stream err: %v", err))
-			return
-		}
-		log.Printf("Pull rtmp stream %v success ", form)
 	} else {
 		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Unknown Scheme : %s", form.URL))
 		return
@@ -100,7 +93,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	c.IndentedJSON(200, sessionPuller.GetID())
 }
 
-func createRtmpClient(form StreamStartForm) (rtsp.BaseClient, error) {
+func createRtmpClient(form StreamStartRequest) (rtsp.BaseClient, error) {
 	agent := fmt.Sprintf("OneDSS Client/%s", BuildVersion)
 	if BuildDateTime != "" {
 		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)
@@ -121,7 +114,7 @@ func createRtmpClient(form StreamStartForm) (rtsp.BaseClient, error) {
 	return client, nil
 }
 
-func createRTSPClient(form StreamStartForm) (rtsp.BaseClient, error) {
+func createRTSPClient(form StreamStartRequest) (rtsp.BaseClient, error) {
 	agent := fmt.Sprintf("OneDSS Client/%s", BuildVersion)
 	if BuildDateTime != "" {
 		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)
@@ -150,7 +143,7 @@ func createRTSPClient(form StreamStartForm) (rtsp.BaseClient, error) {
 	return client, nil
 }
 
-func saveToDatabase(form StreamStartForm) {
+func saveToDatabase(form StreamStartRequest) {
 	var stream = models.Stream{
 		URL:               form.URL,
 		CustomPath:        form.CustomPath,
@@ -173,7 +166,7 @@ func saveToDatabase(form StreamStartForm) {
  * @apiUse simpleSuccess
  */
 func (h *APIHandler) StreamStop(c *gin.Context) {
-	var form StreamStopForm
+	var form StreamStopRequest
 	err := c.Bind(&form)
 	if err != nil {
 		log.Printf("stop pull to push err:%v", err)

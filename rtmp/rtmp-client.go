@@ -126,28 +126,26 @@ func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {
 			client.isFirstPack = true
 			client.SDPRaw = client.NewSdp(control.PacketType)
 			log.Println(client.SDPRaw)
+			log.Printf("%+v", control)
 		}
 		payload := make([]byte, 4+len(pkg.Payload))
 		copy(payload[4:], pkg.Payload)
 		//timeUnix:=time.Now().UnixNano() / 1e6
-		//log.Println(timeUnix)
+		//log.Println(pkg.Timestamp)
 		h := rtprtcp.MakeDefaultRtpHeader()
 		h.Mark = 0
-		packetType := control.PacketType
-		h.PacketType = packetType
+		h.PacketType = control.PacketType
 		h.Seq = client.genSeq()
-		sampleRate := control.SampleRate
-		channelNum := control.ChannelNum
-		h.Timestamp = uint32(float64(pkg.Timestamp) * sampleRate * float64(channelNum))
+		h.Timestamp = uint32(float64(pkg.Timestamp) * control.SampleRate * float64(control.ChannelNum))
 		h.Ssrc = client.audioSsrc
 		pkt := rtprtcp.MakeRtpPacket(h, payload)
+		//log.Println(h.Timestamp, pkg.Timestamp, control.SampleRate, control.ChannelNum)
 
 		rtpBuf := bytes.NewBuffer(pkt.Raw)
 		pack := &rtsp.RTPPack{
 			Type:   rtsp.RTP_TYPE_AUDIO,
 			Buffer: rtpBuf,
 		}
-		//client.InBytes += int(length + 4)
 		for _, h := range client.RTPHandles {
 			h(pack)
 		}

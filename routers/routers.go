@@ -133,6 +133,9 @@ func Init() (err error) {
 		api.GET("/serverinfo", API.GetServerInfo)
 		api.GET("/restart", API.Restart)
 
+		api.GET("/record/folders", API.RecordFolders)
+		api.GET("/record/files", API.RecordFiles)
+
 		api.GET("/pushers", API.Pushers)
 		api.GET("/players", API.Players)
 

@@ -3,7 +3,7 @@ package routers
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/onedss/EasyGoLib/db"
+	"github.com/onedss/onedss/db"
 	"github.com/onedss/onedss/models"
 	"github.com/onedss/onedss/rtmp"
 	"github.com/onedss/onedss/rtsp"

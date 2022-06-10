@@ -3,8 +3,8 @@ package app
 import (
 	"context"
 	"fmt"
-	"github.com/onedss/EasyGoLib/utils"
 	"github.com/onedss/onedss/routers"
+	"github.com/onedss/onedss/utils"
 	"log"
 	"net/http"
 	"time"

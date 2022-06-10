@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/onedss/EasyGoLib/db"
+	"github.com/onedss/onedss/db"
 
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
-	"github.com/onedss/EasyGoLib/utils"
 	"github.com/onedss/cors"
+	"github.com/onedss/onedss/utils"
 	"github.com/onedss/sessions"
 	validator "gopkg.in/go-playground/validator.v8"
 )

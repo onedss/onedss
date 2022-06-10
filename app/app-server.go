@@ -2,9 +2,9 @@ package app
 
 import (
 	"github.com/common-nighthawk/go-figure"
-	"github.com/onedss/EasyGoLib/utils"
 	"github.com/onedss/onedss/rtsp"
 	"github.com/onedss/onedss/service"
+	"github.com/onedss/onedss/utils"
 	"log"
 	"os"
 )

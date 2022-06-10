@@ -1,7 +1,7 @@
 package rtsp
 
 import (
-	"github.com/onedss/EasyGoLib/utils"
+	"github.com/onedss/onedss/utils"
 	"github.com/teris-io/shortid"
 	"log"
 	"time"

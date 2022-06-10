@@ -1,6 +1,6 @@
 package routers
 
-import "github.com/onedss/EasyGoLib/utils"
+import "github.com/onedss/onedss/utils"
 
 var (
 	BuildVersion  = "v8.2"

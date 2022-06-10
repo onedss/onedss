@@ -6,7 +6,7 @@ import (
 	"net"
 	"sync"
 
-	"github.com/onedss/EasyGoLib/utils"
+	"github.com/onedss/onedss/utils"
 )
 
 type Server struct {

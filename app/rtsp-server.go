@@ -2,8 +2,8 @@ package app
 
 import (
 	"fmt"
-	"github.com/onedss/EasyGoLib/utils"
 	"github.com/onedss/onedss/rtsp"
+	"github.com/onedss/onedss/utils"
 	"log"
 )
 

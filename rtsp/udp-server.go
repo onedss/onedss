@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/onedss/EasyGoLib/utils"
+	"github.com/onedss/onedss/utils"
 )
 
 type UDPServer struct {

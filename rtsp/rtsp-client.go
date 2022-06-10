@@ -18,7 +18,7 @@ import (
 
 	"github.com/teris-io/shortid"
 
-	"github.com/onedss/EasyGoLib/utils"
+	"github.com/onedss/onedss/utils"
 
 	"github.com/onedss/go-sdp/sdp"
 )

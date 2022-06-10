@@ -9,7 +9,6 @@ require (
 	github.com/gin-gonic/gin v1.7.7
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jonboulle/clockwork v0.3.0 // indirect
-	github.com/onedss/EasyGoLib v1.0.0
 	github.com/onedss/cors v1.0.0
 	github.com/onedss/go-sdp v1.0.0
 	github.com/onedss/lal v0.25.2
@@ -26,5 +25,10 @@ require (
 	golang.org/x/sys v0.0.0-20220128215802-99c3d69c2c27
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v8 v8.18.2
-	gopkg.in/ini.v1 v1.66.4 // indirect
+	github.com/eiannone/keyboard v0.0.0-20200508000154-caf4b762e807
+	github.com/go-ini/ini v1.62.0
+	github.com/lestrrat-go/file-rotatelogs v2.4.0+incompatible
+	github.com/lestrrat-go/strftime v1.0.5 // indirect
+	github.com/mattn/go-sqlite3 v1.14.8 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 )

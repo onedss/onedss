@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/onedss/EasyGoLib/utils"
 	"github.com/onedss/onedss/app"
 	"github.com/onedss/onedss/core/logger"
 	"github.com/onedss/onedss/routers"
+	"github.com/onedss/onedss/utils"
 	"log"
 )
 

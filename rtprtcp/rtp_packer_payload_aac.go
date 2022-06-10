@@ -33,7 +33,7 @@ func (r *RtpPackerPayloadAac) Pack(in []byte, maxSize int) (out [][]byte) {
 	// 第三部分是帧数据的数组
 
 	if len(in) > maxSize {
-		log.Println("frame size bigger than rtp payload size while packing. len(in)=%d, maxSize=%d", len(in), maxSize)
+		log.Printf("frame size bigger than rtp payload size while packing. len(in)=%d, maxSize=%d", len(in), maxSize)
 	}
 
 	auHeadersLength := 2 // auHeaderSize * nbAuHeaders = 2 * 1

@@ -120,6 +120,7 @@ func Init() (err error) {
 
 	{
 		wwwDir := filepath.Join(utils.DataDir(), "www")
+		log.Println("www root -->", wwwDir)
 		Router.Use(static.Serve("/", static.LocalFile(wwwDir, true)))
 	}
 

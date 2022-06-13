@@ -10,7 +10,7 @@ import (
 )
 
 func StartApp() {
-	log.Println("Config File :", utils.ConfFile())
+	log.Println("config file -->", utils.ConfFile())
 	sec := utils.Conf().Section("service")
 	svcConfig := &service.Config{
 		Name:        sec.Key("name").MustString("EasyDarwin_Service"),

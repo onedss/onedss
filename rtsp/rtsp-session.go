@@ -9,6 +9,7 @@ import (
 	"log"
 	"net"
 	"net/url"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -57,6 +58,7 @@ func (tt TransType) String() string {
 const UDP_BUF_SIZE = 1048576
 
 type Session struct {
+	SessionLogger
 	ID          string
 	Server      *Server
 	privateConn *RichConn
@@ -91,8 +93,23 @@ type Session struct {
 	Pusher      *Pusher
 	Player      *Player
 	UDPClient   *UDPClient
+	UDPSender   *net.UDPConn
 	RTPHandles  []func(*RTPPack)
 	StopHandles []func()
+}
+
+func (session *Session) AddUdpHostPort(udpHost string) error {
+	addr, err := net.ResolveUDPAddr("udp4", udpHost)
+	if err != nil {
+		session.logger.Printf("udp address is error [%s]", udpHost)
+		return err
+	}
+	session.UDPSender, err = net.DialUDP("udp4", nil, addr)
+	if err != nil {
+		session.logger.Printf("udp connection is error [%s]", udpHost)
+		return err
+	}
+	return nil
 }
 
 func (session *Session) AddRTPHandles(f func(*RTPPack)) {
@@ -138,6 +155,10 @@ func NewSession(server *Server, conn *net.TCPConn) *Session {
 		RTPHandles:  make([]func(*RTPPack), 0),
 		StopHandles: make([]func(), 0),
 	}
+	session.logger = log.New(os.Stdout, fmt.Sprintf("[%s]", session.ID), log.LstdFlags|log.Lshortfile)
+	if !utils.Debug {
+		session.logger.SetOutput(utils.GetLogWriter())
+	}
 	return session
 }
 
@@ -158,31 +179,36 @@ func (session *Session) Stop() {
 		session.UDPClient.Stop()
 		session.UDPClient = nil
 	}
+	if session.UDPSender != nil {
+		session.UDPSender.Close()
+		session.UDPSender = nil
+	}
 }
 
 func (session *Session) Start() {
 	defer session.Stop()
 	buf1 := make([]byte, 1)
 	buf2 := make([]byte, 2)
+	logger := session.logger
 	for !session.Stoped {
 		if _, err := io.ReadFull(session.connRW, buf1); err != nil {
-			log.Println(session, err)
+			logger.Println(session, err)
 			return
 		}
 		if buf1[0] == 0x24 { //rtp data
 			if _, err := io.ReadFull(session.connRW, buf1); err != nil {
-				log.Println(err)
+				logger.Println(err)
 				return
 			}
 			if _, err := io.ReadFull(session.connRW, buf2); err != nil {
-				log.Println(err)
+				logger.Println(err)
 				return
 			}
 			channel := int(buf1[0])
 			rtpLen := int(binary.BigEndian.Uint16(buf2))
 			rtpBytes := make([]byte, rtpLen)
 			if _, err := io.ReadFull(session.connRW, rtpBytes); err != nil {
-				log.Println(err)
+				logger.Println(err)
 				return
 			}
 			rtpBuf := bytes.NewBuffer(rtpBytes)
@@ -209,11 +235,11 @@ func (session *Session) Start() {
 					Buffer: rtpBuf,
 				}
 			default:
-				log.Printf("unknow rtp pack type, %v", pack.Type)
+				logger.Printf("unknow rtp pack type, %v", pack.Type)
 				continue
 			}
 			if pack == nil {
-				log.Printf("session tcp got nil rtp pack")
+				logger.Printf("session tcp got nil rtp pack")
 				continue
 			}
 			session.InBytes += rtpLen + 4
@@ -225,7 +251,7 @@ func (session *Session) Start() {
 			reqBuf.Write(buf1)
 			for !session.Stoped {
 				if line, isPrefix, err := session.connRW.ReadLine(); err != nil {
-					log.Println(err)
+					logger.Println(err)
 					return
 				} else {
 					reqBuf.Write(line)
@@ -243,10 +269,10 @@ func (session *Session) Start() {
 						if contentLen > 0 {
 							bodyBuf := make([]byte, contentLen)
 							if n, err := io.ReadFull(session.connRW, bodyBuf); err != nil {
-								log.Println(err)
+								logger.Println(err)
 								return
 							} else if n != contentLen {
-								log.Printf("read rtsp request body failed, expect size[%d], got size[%d]", contentLen, n)
+								logger.Printf("read rtsp request body failed, expect size[%d], got size[%d]", contentLen, n)
 								return
 							}
 							req.Body = string(bodyBuf)
@@ -264,15 +290,15 @@ func (session *Session) handleRequest(req *Request) {
 	//if session.Timeout > 0 {
 	//	session.privateConn.SetDeadline(time.Now().Add(time.Duration(session.Timeout) * time.Second))
 	//}
-
-	log.Println("<<<", req)
+	logger := session.logger
+	logger.Println("<<<", req)
 	res := NewResponse(200, "OK", req.Header["CSeq"], session.ID, "")
 	defer func() {
 		if p := recover(); p != nil {
 			res.StatusCode = 500
 			res.Status = fmt.Sprintf("Inner Server Error, %v", p)
 		}
-		log.Println(">>>", res)
+		logger.Println(">>>", res)
 		outBytes := []byte(res.String())
 		session.connWLock.Lock()
 		session.connRW.Write(outBytes)
@@ -312,13 +338,13 @@ func (session *Session) handleRequest(req *Request) {
 		if ok {
 			session.AControl = sdp.Control
 			session.ACodec = sdp.Codec
-			log.Printf("audio codec[%s]\n", session.ACodec)
+			logger.Printf("audio codec[%s]\n", session.ACodec)
 		}
 		sdp, ok = session.SDPMap["video"]
 		if ok {
 			session.VControl = sdp.Control
 			session.VCodec = sdp.Codec
-			log.Printf("video codec[%s]\n", session.VCodec)
+			logger.Printf("video codec[%s]\n", session.VCodec)
 		}
 		session.Pusher = NewPusher(session)
 		if session.Server.GetPusher(session.Path) == nil {

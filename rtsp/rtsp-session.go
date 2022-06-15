@@ -98,15 +98,27 @@ type Session struct {
 	StopHandles []func()
 }
 
-func (session *Session) AddUdpHostPort(udpHost string) error {
-	addr, err := net.ResolveUDPAddr("udp4", udpHost)
-	if err != nil {
-		session.logger.Printf("udp address is error [%s]", udpHost)
+func (session *Session) AddUdpHostPort(udpHostPort string) error {
+	var (
+		raddr *net.UDPAddr
+		laddr *net.UDPAddr
+		err   error
+	)
+	logger := session.logger
+
+	if raddr, err = net.ResolveUDPAddr("udp4", udpHostPort); err != nil {
+		session.logger.Printf("udp address is error [%s]", udpHostPort)
 		return err
 	}
-	session.UDPSender, err = net.DialUDP("udp4", nil, addr)
-	if err != nil {
-		session.logger.Printf("udp connection is error [%s]", udpHost)
+	address := utils.Conf().Section("udp").Key("bind_host").MustString("")
+	if address != "" && strings.IndexAny(address, ":") == -1 {
+		address = address + ":"
+	}
+	if laddr, err = net.ResolveUDPAddr("udp4", address); err != nil {
+		logger.Printf("error local address: %s", address)
+	}
+	if session.UDPSender, err = net.DialUDP("udp4", laddr, raddr); err != nil {
+		session.logger.Printf("udp connection is error [%s]", udpHostPort)
 		return err
 	}
 	return nil

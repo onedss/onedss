@@ -80,6 +80,9 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Path %s already exists", client.GetPath()))
 		return
 	}
+	if form.UdpHostPort != "" {
+		sessionPuller.AddUdpHostPort(form.UdpHostPort)
+	}
 	err = client.Init(time.Duration(form.IdleTimeout) * time.Second)
 	if err != nil {
 		log.Printf("Pull stream err :%v", err)

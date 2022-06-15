@@ -1,7 +1,9 @@
 package rtsp
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"strings"
 	"sync"
 	"time"
@@ -10,6 +12,7 @@ import (
 )
 
 type Pusher struct {
+	SessionLogger
 	*Session
 
 	players        map[string]*Player //SessionID <-> Player
@@ -32,6 +35,10 @@ func NewPusher(session *Session) (pusher *Pusher) {
 
 		cond:  sync.NewCond(&sync.Mutex{}),
 		queue: make([]*RTPPack, 0),
+	}
+	pusher.logger = log.New(os.Stdout, fmt.Sprintf("[%s]", session.ID), log.LstdFlags|log.Lshortfile)
+	if !utils.Debug {
+		pusher.logger.SetOutput(utils.GetLogWriter())
 	}
 	session.AddRTPHandles(func(pack *RTPPack) {
 		pusher.QueueRTP(pack)
@@ -116,7 +123,8 @@ func (pusher *Pusher) QueueRTP(pack *RTPPack) *Pusher {
 }
 
 func (pusher *Pusher) Start() {
-	log.Println("Pusher Start() Begin...", pusher.ID)
+	logger := pusher.logger
+	logger.Println("Pusher Start() Begin...", pusher.ID)
 	for !pusher.Stoped {
 		var pack *RTPPack
 		pusher.cond.L.Lock()
@@ -130,12 +138,17 @@ func (pusher *Pusher) Start() {
 		pusher.cond.L.Unlock()
 		if pack == nil {
 			if !pusher.Stoped {
-				log.Printf("pusher not stoped, but queue take out nil pack")
+				logger.Printf("pusher not stoped, but queue take out nil pack")
 			}
 			continue
 		}
-
-		if pusher.gopCacheEnable {
+		if pusher.UDPSender != nil && pack.Type == RTP_TYPE_AUDIO {
+			pusher.UDPSender.Write(pack.Buffer.Bytes())
+			//src := pack.Buffer.Bytes()
+			//encodedStr := hex.EncodeToString(src)
+			//logger.Println(encodedStr)
+		}
+		if pusher.gopCacheEnable && pack.Type == RTP_TYPE_VIDEO {
 			pusher.gopCacheLock.Lock()
 			if strings.EqualFold(pusher.VCodec, "h264") {
 				if rtp := ParseRTP(pack.Buffer.Bytes()); rtp != nil && rtp.IsKeyframeStart() {
@@ -153,7 +166,7 @@ func (pusher *Pusher) Start() {
 
 		pusher.BroadcastRTP(pack)
 	}
-	log.Println("Pusher Start() End.", pusher.ID)
+	logger.Println("Pusher Start() End.", pusher.ID)
 }
 
 //func (pusher *Pusher) Stop() {
@@ -183,6 +196,7 @@ func (pusher *Pusher) GetPlayers() (players map[string]*Player) {
 }
 
 func (pusher *Pusher) AddPlayer(player *Player) *Pusher {
+	logger := pusher.logger
 	if pusher.gopCacheEnable {
 		pusher.gopCacheLock.RLock()
 		for _, pack := range pusher.gopCache {
@@ -196,16 +210,17 @@ func (pusher *Pusher) AddPlayer(player *Player) *Pusher {
 	if _, ok := pusher.players[player.ID]; !ok {
 		pusher.players[player.ID] = player
 		go player.Start()
-		log.Printf("%v start, now player size[%d]", player, len(pusher.players))
+		logger.Printf("%v start, now player size[%d]", player, len(pusher.players))
 	}
 	pusher.playersLock.Unlock()
 	return pusher
 }
 
 func (pusher *Pusher) RemovePlayer(player *Player) *Pusher {
+	logger := pusher.logger
 	pusher.playersLock.Lock()
 	delete(pusher.players, player.ID)
-	log.Printf("%v end, now player size[%d]\n", player, len(pusher.players))
+	logger.Printf("%v end, now player size[%d]\n", player, len(pusher.players))
 	pusher.playersLock.Unlock()
 	return pusher
 }

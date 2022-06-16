@@ -115,7 +115,9 @@ func (session *Session) AddUdpHostPort(udpHostPort string) error {
 		address = address + ":"
 	}
 	if laddr, err = net.ResolveUDPAddr("udp4", address); err != nil {
-		logger.Printf("error local address: %s", address)
+		logger.Println("error bind address:", address)
+	} else {
+		logger.Println("local bind address:", address)
 	}
 	if session.UDPSender, err = net.DialUDP("udp4", laddr, raddr); err != nil {
 		session.logger.Printf("udp connection is error [%s]", udpHostPort)
@@ -150,6 +152,23 @@ func (session *Session) String() string {
 	} else {
 		return fmt.Sprintf("session[%v][%v][%s][%s]", session.Type, session.TransType, session.Path, session.ID)
 	}
+}
+
+func NewNoneConnSession(server *Server) *Session {
+	session := &Session{
+		ID:      shortid.MustGenerate(),
+		Server:  server,
+		StartAt: time.Now(),
+		Timeout: utils.Conf().Section("rtsp").Key("timeout").MustInt(0),
+
+		RTPHandles:  make([]func(*RTPPack), 0),
+		StopHandles: make([]func(), 0),
+	}
+	session.logger = log.New(os.Stdout, fmt.Sprintf("[%s]", session.ID), log.LstdFlags|log.Lshortfile)
+	if !utils.Debug {
+		session.logger.SetOutput(utils.GetLogWriter())
+	}
+	return session
 }
 
 func NewSession(server *Server, conn *net.TCPConn) *Session {

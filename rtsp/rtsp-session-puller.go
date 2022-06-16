@@ -1,10 +1,7 @@
 package rtsp
 
 import (
-	"github.com/onedss/onedss/utils"
-	"github.com/teris-io/shortid"
 	"log"
-	"time"
 )
 
 type SessionPuller struct {
@@ -13,15 +10,7 @@ type SessionPuller struct {
 }
 
 func NewSessionPuller(server *Server, client BaseClient) *SessionPuller {
-	session := &Session{
-		ID:      shortid.MustGenerate(),
-		Server:  server,
-		StartAt: time.Now(),
-		Timeout: utils.Conf().Section("rtsp").Key("timeout").MustInt(0),
-
-		RTPHandles:  make([]func(*RTPPack), 0),
-		StopHandles: make([]func(), 0),
-	}
+	session := NewNoneConnSession(server)
 	puller := &SessionPuller{
 		Session:    session,
 		RTSPClient: client,

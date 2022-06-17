@@ -119,9 +119,9 @@ func (session *Session) AddUdpHostPort(udpHostPort string) error {
 		address = address + ":"
 	}
 	if laddr, err = net.ResolveUDPAddr("udp4", address); err != nil {
-		logger.Println("error bind address:", address)
+		logger.Printf("error bind address: [%s]", address)
 	} else {
-		logger.Println("local bind address:", address)
+		logger.Printf("local bind address: [%s]", address)
 	}
 	if session.UDPSender, err = net.DialUDP("udp4", laddr, raddr); err != nil {
 		logger.Printf("udp connection is error [%s]", udpHostPort)

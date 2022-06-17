@@ -1,7 +1,18 @@
 package rtsp
 
-import "log"
+import (
+	"github.com/onedss/onedss/core/logger"
+	"log"
+)
 
 type SessionLogger struct {
-	logger *log.Logger
+	innerLogger *log.Logger
+}
+
+func (sessionLogger *SessionLogger) getLogger() *log.Logger {
+	if sessionLogger != nil {
+		return sessionLogger.innerLogger
+	} else {
+		return logger.InfoLogger
+	}
 }

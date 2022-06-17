@@ -20,13 +20,13 @@ func init() {
 	if err != nil {
 		log.Fatalln("Failed to open error log file:", err)
 	}
-	TraceLogger = log.New(ioutil.Discard, "[TRACE] ", log.Ldate|log.Ltime|log.Lshortfile)
+	TraceLogger = log.New(ioutil.Discard, "[TRACE] ", log.Ldate|log.Ltime|log.Lshortfile|log.Lmicroseconds)
 
-	InfoLogger = log.New(os.Stdout, "[INFO] ", log.Ldate|log.Ltime|log.Lshortfile)
+	InfoLogger = log.New(os.Stdout, "[INFO] ", log.Ldate|log.Ltime|log.Lshortfile|log.Lmicroseconds)
 
-	WarningLogger = log.New(os.Stdout, "[WARNING] ", log.Ldate|log.Ltime|log.Lshortfile)
+	WarningLogger = log.New(os.Stdout, "[WARNING] ", log.Ldate|log.Ltime|log.Lshortfile|log.Lmicroseconds)
 
-	ErrorLogger = log.New(io.MultiWriter(file, os.Stderr), "[ERROR] ", log.Ldate|log.Ltime|log.Lshortfile)
+	ErrorLogger = log.New(io.MultiWriter(file, os.Stderr), "[ERROR] ", log.Ldate|log.Ltime|log.Lshortfile|log.Lmicroseconds)
 }
 
 func Trace(v ...interface{}) {

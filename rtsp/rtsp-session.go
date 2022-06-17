@@ -107,7 +107,7 @@ func (session *Session) AddUdpHostPort(udpHostPort string) error {
 		laddr *net.UDPAddr
 		err   error
 	)
-	logger := session.logger
+	logger := session.getLogger()
 
 	if raddr, err = net.ResolveUDPAddr("udp4", udpHostPort); err != nil {
 		logger.Printf("udp address is error [%s]", udpHostPort)
@@ -168,9 +168,9 @@ func NewNoneConnSession(server *Server) *Session {
 		RTPHandles:  make([]func(*RTPPack), 0),
 		StopHandles: make([]func(), 0),
 	}
-	session.logger = log.New(os.Stdout, fmt.Sprintf("[%s]", session.ID), log.LstdFlags|log.Lshortfile)
+	session.innerLogger = log.New(os.Stdout, fmt.Sprintf("[%s]*", session.ID), log.LstdFlags|log.Lshortfile|log.Lmicroseconds)
 	if !utils.Debug {
-		session.logger.SetOutput(utils.GetLogWriter())
+		session.innerLogger.SetOutput(utils.GetLogWriter())
 	}
 	return session
 }
@@ -191,14 +191,16 @@ func NewSession(server *Server, conn *net.TCPConn) *Session {
 		RTPHandles:  make([]func(*RTPPack), 0),
 		StopHandles: make([]func(), 0),
 	}
-	session.logger = log.New(os.Stdout, fmt.Sprintf("[%s]", session.ID), log.LstdFlags|log.Lshortfile)
+	session.innerLogger = log.New(os.Stdout, fmt.Sprintf("[%s] ", session.ID), log.LstdFlags|log.Lshortfile|log.Lmicroseconds)
 	if !utils.Debug {
-		session.logger.SetOutput(utils.GetLogWriter())
+		session.innerLogger.SetOutput(utils.GetLogWriter())
 	}
 	return session
 }
 
 func (session *Session) Stop() {
+	logger := session.getLogger()
+	logger.Println("Session Stop()")
 	if session.Stoped {
 		return
 	}
@@ -225,7 +227,7 @@ func (session *Session) Start() {
 	defer session.Stop()
 	buf1 := make([]byte, 1)
 	buf2 := make([]byte, 2)
-	logger := session.logger
+	logger := session.getLogger()
 	for !session.Stoped {
 		if _, err := io.ReadFull(session.connRW, buf1); err != nil {
 			logger.Println(session, err)
@@ -326,7 +328,7 @@ func (session *Session) handleRequest(req *Request) {
 	//if session.Timeout > 0 {
 	//	session.privateConn.SetDeadline(time.Now().Add(time.Duration(session.Timeout) * time.Second))
 	//}
-	logger := session.logger
+	logger := session.getLogger()
 	logger.Println("<<<", req)
 	res := NewResponse(200, "OK", req.Header["CSeq"], session.ID, "")
 	defer func() {

@@ -22,7 +22,7 @@ type Server struct {
 }
 
 var Instance *Server = &Server{
-	SessionLogger:  SessionLogger{log.New(os.Stdout, "[RTSPServer]", log.LstdFlags|log.Lshortfile)},
+	SessionLogger:  SessionLogger{log.New(os.Stdout, "[RTSPServer] ", log.LstdFlags|log.Lshortfile|log.Lmicroseconds)},
 	Stoped:         true,
 	TCPPort:        utils.Conf().Section("rtsp").Key("port").MustInt(554),
 	pushers:        make(map[string]*Pusher),
@@ -36,10 +36,10 @@ func GetServer() *Server {
 
 func (server *Server) Start() (err error) {
 	var (
-		logger   = server.logger
 		addr     *net.TCPAddr
 		listener *net.TCPListener
 	)
+	logger := server.getLogger()
 	addr, err = net.ResolveTCPAddr("tcp", fmt.Sprintf(":%d", server.TCPPort))
 	if err != nil {
 		return
@@ -72,7 +72,7 @@ func (server *Server) Start() (err error) {
 }
 
 func (server *Server) Stop() {
-	logger := server.logger
+	logger := server.getLogger()
 	logger.Println("rtsp server stop on", server.TCPPort)
 	server.Stoped = true
 	if server.TCPListener != nil {
@@ -85,7 +85,7 @@ func (server *Server) Stop() {
 }
 
 func (server *Server) AddPusher(pusher *Pusher) {
-	logger := server.logger
+	logger := server.getLogger()
 	server.pushersLock.Lock()
 	if _, ok := server.pushers[pusher.GetPath()]; !ok {
 		server.pushers[pusher.GetPath()] = pusher
@@ -96,7 +96,7 @@ func (server *Server) AddPusher(pusher *Pusher) {
 }
 
 func (server *Server) RemovePusher(pusher *Pusher) {
-	logger := server.logger
+	logger := server.getLogger()
 	server.pushersLock.Lock()
 	if _pusher, ok := server.pushers[pusher.GetPath()]; ok && pusher.GetID() == _pusher.GetID() {
 		delete(server.pushers, pusher.GetPath())

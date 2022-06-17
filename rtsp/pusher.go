@@ -36,9 +36,9 @@ func NewPusher(session *Session) (pusher *Pusher) {
 		cond:  sync.NewCond(&sync.Mutex{}),
 		queue: make([]*RTPPack, 0),
 	}
-	pusher.logger = log.New(os.Stdout, fmt.Sprintf("[%s]", session.ID), log.LstdFlags|log.Lshortfile)
+	pusher.innerLogger = log.New(os.Stdout, fmt.Sprintf("[%s] ", session.ID), log.LstdFlags|log.Lshortfile|log.Lmicroseconds)
 	if !utils.Debug {
-		pusher.logger.SetOutput(utils.GetLogWriter())
+		pusher.innerLogger.SetOutput(utils.GetLogWriter())
 	}
 	session.AddRTPHandles(func(pack *RTPPack) {
 		pusher.QueueRTP(pack)
@@ -123,7 +123,7 @@ func (pusher *Pusher) QueueRTP(pack *RTPPack) *Pusher {
 }
 
 func (pusher *Pusher) Start() {
-	logger := pusher.logger
+	logger := pusher.getLogger()
 	logger.Println("Pusher Start() Begin...", pusher.ID)
 	for !pusher.Stoped {
 		var pack *RTPPack
@@ -196,7 +196,7 @@ func (pusher *Pusher) GetPlayers() (players map[string]*Player) {
 }
 
 func (pusher *Pusher) AddPlayer(player *Player) *Pusher {
-	logger := pusher.logger
+	logger := pusher.getLogger()
 	if pusher.gopCacheEnable {
 		pusher.gopCacheLock.RLock()
 		for _, pack := range pusher.gopCache {
@@ -217,7 +217,7 @@ func (pusher *Pusher) AddPlayer(player *Player) *Pusher {
 }
 
 func (pusher *Pusher) RemovePlayer(player *Player) *Pusher {
-	logger := pusher.logger
+	logger := pusher.getLogger()
 	pusher.playersLock.Lock()
 	delete(pusher.players, player.ID)
 	logger.Printf("%v end, now player size[%d]\n", player, len(pusher.players))

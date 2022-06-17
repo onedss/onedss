@@ -21,7 +21,7 @@ import (
 
 // TODO chef: 考虑部分内容移入naza中
 
-var ErrUrl = errors.New("lal.url: fxxk")
+var ErrUrl = errors.New("error url")
 
 const (
 	DefaultRtmpPort  = 1935

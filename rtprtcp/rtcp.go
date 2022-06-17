@@ -84,7 +84,7 @@ import (
 //        |                  profile-specific extensions                  |
 //        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-var ErrRtcp = errors.New("lal.rtcp: fxxk")
+var ErrRtcp = errors.New("error rtcp")
 
 const (
 	RtcpPacketTypeSr  = 200 // 0xc8 Sender Report

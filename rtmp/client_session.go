@@ -26,7 +26,7 @@ import (
 	"github.com/onedss/onedss/lal/connection"
 )
 
-var ErrClientSessionTimeout = errors.New("lal.rtmp: client session timeout")
+var ErrClientSessionTimeout = errors.New("client session timeout")
 
 // rtmp 客户端类型连接的底层实现
 // package rtmp 的使用者应该优先使用基于 ClientSession 实现的 PushSession 和 PullSession

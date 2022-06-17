@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	ErrRtmp = errors.New("lal.rtmp: fxxk")
+	ErrRtmp = errors.New("error rtmp")
 )
 
 const (

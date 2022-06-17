@@ -23,8 +23,8 @@ import (
 // - 考虑增加一个pattern全部未命中的mux回调
 
 var (
-	ErrAddrEmpty             = errors.New("lal.base: http server addr empty")
-	ErrMultiRegistForPattern = errors.New("lal.base: http server multiple registrations for pattern")
+	ErrAddrEmpty             = errors.New("http server addr empty")
+	ErrMultiRegistForPattern = errors.New("http server multiple registrations for pattern")
 )
 
 const (

@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	ErrSessionNotStarted = errors.New("lal.base: session has not been started yet")
+	ErrSessionNotStarted = errors.New("session has not been started yet")
 )
 
 // IsUseClosedConnectionError 当connection处于这些情况时，就不需要再Close了

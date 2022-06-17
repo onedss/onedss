@@ -29,7 +29,7 @@ import (
 // |F|   Type    |  LayerId  | TID |
 // +-------------+-----------------+
 
-var ErrHevc = errors.New("lal.hevc: fxxk")
+var ErrHevc = errors.New("error hevc")
 
 var (
 	NaluStartCode4 = []byte{0x0, 0x0, 0x0, 0x1}

@@ -26,7 +26,7 @@ import (
 //   nalu with length prefix.
 //   e.g. rtmp, flv
 
-var ErrAvc = errors.New("lal.avc: fxxk")
+var ErrAvc = errors.New("error avc")
 
 var (
 	NaluStartCode3 = []byte{0x0, 0x0, 0x1}

@@ -22,9 +22,9 @@ import (
 )
 
 var (
-	ErrAmfInvalidType = errors.New("lal.rtmp: invalid amf0 type")
-	ErrAmfTooShort    = errors.New("lal.rtmp: too short to unmarshal amf0 data")
-	ErrAmfNotExist    = errors.New("lal.rtmp: not exist")
+	ErrAmfInvalidType = errors.New("invalid amf0 type")
+	ErrAmfTooShort    = errors.New("too short to unmarshal amf0 data")
+	ErrAmfNotExist    = errors.New("not exist")
 )
 
 const (

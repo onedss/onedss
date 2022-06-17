@@ -61,6 +61,10 @@ func (s *PullSession) Pull(rawUrl string, onReadRtmpAvMsg OnReadRtmpAvMsg) error
 	return s.core.Do(rawUrl)
 }
 
+func (s *PullSession) AddDisposeHandles(f func()) {
+	s.core.AddDisposeHandles(f)
+}
+
 // ---------------------------------------------------------------------------------------------------------------------
 // IClientSessionLifecycle interface
 // ---------------------------------------------------------------------------------------------------------------------

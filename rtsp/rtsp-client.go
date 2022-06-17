@@ -202,7 +202,7 @@ func (client *RTSPClient) checkAuth(method string, resp *Response) (string, erro
 }
 
 func (client *RTSPClient) requestStream(timeout time.Duration) (err error) {
-	logger := client.getLogger()
+	logger := client.GetLogger()
 	defer func() {
 		if err != nil {
 			client.Status = "Error"
@@ -375,7 +375,7 @@ func (client *RTSPClient) requestStream(timeout time.Duration) (err error) {
 }
 
 func (client *RTSPClient) startStream() {
-	logger := client.getLogger()
+	logger := client.GetLogger()
 	startTime := time.Now()
 	loggerTime := time.Now().Add(-10 * time.Second)
 	defer client.Stop()
@@ -540,7 +540,7 @@ func (client *RTSPClient) Start() bool {
 }
 
 func (client *RTSPClient) Stop() {
-	logger := client.getLogger()
+	logger := client.GetLogger()
 	logger.Printf("RTSPClient Stop. [%s]", client.ID)
 	if client.Stoped {
 		return
@@ -561,7 +561,7 @@ func (client *RTSPClient) Stop() {
 }
 
 func (client *RTSPClient) RequestWithPath(method string, path string, headers map[string]string, needResp bool) (resp *Response, err error) {
-	logger := client.getLogger()
+	logger := client.GetLogger()
 	headers["User-Agent"] = client.Agent
 	if len(headers["Authorization"]) == 0 {
 		if len(client.authLine) != 0 {

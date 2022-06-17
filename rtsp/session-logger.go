@@ -9,7 +9,7 @@ type SessionLogger struct {
 	innerLogger *log.Logger
 }
 
-func (sessionLogger *SessionLogger) getLogger() *log.Logger {
+func (sessionLogger *SessionLogger) GetLogger() *log.Logger {
 	if sessionLogger != nil {
 		return sessionLogger.innerLogger
 	} else {

@@ -107,7 +107,7 @@ func (session *Session) AddUdpHostPort(udpHostPort string) error {
 		laddr *net.UDPAddr
 		err   error
 	)
-	logger := session.getLogger()
+	logger := session.GetLogger()
 
 	if raddr, err = net.ResolveUDPAddr("udp4", udpHostPort); err != nil {
 		logger.Printf("udp address is error [%s]", udpHostPort)
@@ -199,7 +199,7 @@ func NewSession(server *Server, conn *net.TCPConn) *Session {
 }
 
 func (session *Session) Stop() {
-	logger := session.getLogger()
+	logger := session.GetLogger()
 	logger.Printf("Session Stop. [%s] %v", session.ID, session.Stoped)
 	if session.Stoped {
 		return
@@ -227,7 +227,7 @@ func (session *Session) Start() {
 	defer session.Stop()
 	buf1 := make([]byte, 1)
 	buf2 := make([]byte, 2)
-	logger := session.getLogger()
+	logger := session.GetLogger()
 	logger.Printf("Session Start. [%s]", session.ID)
 	for !session.Stoped {
 		if _, err := io.ReadFull(session.connRW, buf1); err != nil {
@@ -329,7 +329,7 @@ func (session *Session) handleRequest(req *Request) {
 	//if session.Timeout > 0 {
 	//	session.privateConn.SetDeadline(time.Now().Add(time.Duration(session.Timeout) * time.Second))
 	//}
-	logger := session.getLogger()
+	logger := session.GetLogger()
 	logger.Println("<<<", req)
 	res := NewResponse(200, "OK", req.Header["CSeq"], session.ID, "")
 	defer func() {

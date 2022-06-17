@@ -50,7 +50,8 @@ type ClientSession struct {
 	hasNotifyDoResultSucc bool
 
 	// 只有PullSession使用
-	onReadRtmpAvMsg OnReadRtmpAvMsg
+	onReadRtmpAvMsg  OnReadRtmpAvMsg
+	onDisposeHandles []func()
 
 	debugLogReadUserCtrlMsgCount int
 	debugLogReadUserCtrlMsgMax   int
@@ -81,6 +82,10 @@ var defaultClientSessOption = ClientSessionOption{
 }
 
 type ModClientSessionOption func(option *ClientSessionOption)
+
+func (s *ClientSession) AddDisposeHandles(f func()) {
+	s.onDisposeHandles = append(s.onDisposeHandles, f)
+}
 
 // @param t: session的类型，只能是推或者拉
 func NewClientSession(t ClientSessionType, modOptions ...ModClientSessionOption) *ClientSession {
@@ -550,6 +555,9 @@ func (s *ClientSession) dispose(err error) error {
 	var retErr error
 	s.disposeOnce.Do(func() {
 		log.Printf("[%s] lifecycle dispose rtmp ClientSession. err=%+v", s.uniqueKey, err)
+		for _, h := range s.onDisposeHandles {
+			h()
+		}
 		if s.conn == nil {
 			retErr = base.ErrSessionNotStarted
 			return

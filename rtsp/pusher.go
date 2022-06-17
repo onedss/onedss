@@ -123,7 +123,7 @@ func (pusher *Pusher) QueueRTP(pack *RTPPack) *Pusher {
 }
 
 func (pusher *Pusher) Start() {
-	logger := pusher.getLogger()
+	logger := pusher.GetLogger()
 	logger.Printf("Pusher Start Begin. [%s]", pusher.ID)
 	for !pusher.Stoped {
 		var pack *RTPPack
@@ -196,7 +196,7 @@ func (pusher *Pusher) GetPlayers() (players map[string]*Player) {
 }
 
 func (pusher *Pusher) AddPlayer(player *Player) *Pusher {
-	logger := pusher.getLogger()
+	logger := pusher.GetLogger()
 	if pusher.gopCacheEnable {
 		pusher.gopCacheLock.RLock()
 		for _, pack := range pusher.gopCache {
@@ -217,7 +217,7 @@ func (pusher *Pusher) AddPlayer(player *Player) *Pusher {
 }
 
 func (pusher *Pusher) RemovePlayer(player *Player) *Pusher {
-	logger := pusher.getLogger()
+	logger := pusher.GetLogger()
 	pusher.playersLock.Lock()
 	delete(pusher.players, player.ID)
 	logger.Printf("%v end, now player size[%d]\n", player, len(pusher.players))

@@ -14,6 +14,9 @@ import (
 )
 
 type RTMPClient struct {
+	rtsp.SessionLogger
+
+	Stoped      bool
 	URL         string
 	Path        string
 	CustomPath  string //custom path for pusher
@@ -102,6 +105,12 @@ func (client *RTMPClient) Start() bool {
 }
 
 func (client *RTMPClient) Stop() {
+	//logger := client.getLogger()
+	//logger.Printf("RTSPClient Stop. [%s]", client.URL)
+	//if client.Stoped {
+	//	return
+	//}
+	client.Stoped = true
 	if client.pullSession != nil {
 		client.pullSession.Dispose()
 	}

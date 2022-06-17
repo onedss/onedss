@@ -39,7 +39,7 @@ func (server *Server) Start() (err error) {
 		addr     *net.TCPAddr
 		listener *net.TCPListener
 	)
-	logger := server.getLogger()
+	logger := server.GetLogger()
 	addr, err = net.ResolveTCPAddr("tcp", fmt.Sprintf(":%d", server.TCPPort))
 	if err != nil {
 		return
@@ -72,7 +72,7 @@ func (server *Server) Start() (err error) {
 }
 
 func (server *Server) Stop() {
-	logger := server.getLogger()
+	logger := server.GetLogger()
 	logger.Println("rtsp server stop on", server.TCPPort)
 	server.Stoped = true
 	if server.TCPListener != nil {
@@ -85,7 +85,7 @@ func (server *Server) Stop() {
 }
 
 func (server *Server) AddPusher(pusher *Pusher) {
-	logger := server.getLogger()
+	logger := server.GetLogger()
 	server.pushersLock.Lock()
 	if _, ok := server.pushers[pusher.GetPath()]; !ok {
 		server.pushers[pusher.GetPath()] = pusher
@@ -96,7 +96,7 @@ func (server *Server) AddPusher(pusher *Pusher) {
 }
 
 func (server *Server) RemovePusher(pusher *Pusher) {
-	logger := server.getLogger()
+	logger := server.GetLogger()
 	server.pushersLock.Lock()
 	if _pusher, ok := server.pushers[pusher.GetPath()]; ok && pusher.GetID() == _pusher.GetID() {
 		delete(server.pushers, pusher.GetPath())

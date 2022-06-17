@@ -166,7 +166,7 @@ func (pusher *Pusher) Start() {
 
 		pusher.BroadcastRTP(pack)
 	}
-	logger.Println("Pusher Start() End.", pusher.ID)
+	logger.Printf("Pusher Star End. [%s]", pusher.ID)
 }
 
 //func (pusher *Pusher) Stop() {

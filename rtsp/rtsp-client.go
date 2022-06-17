@@ -541,7 +541,7 @@ func (client *RTSPClient) Start() bool {
 
 func (client *RTSPClient) Stop() {
 	logger := client.getLogger()
-	logger.Println("RTSPClient Stop. [%s]", client.ID)
+	logger.Printf("RTSPClient Stop. [%s]", client.ID)
 	if client.Stoped {
 		return
 	}

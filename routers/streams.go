@@ -181,11 +181,6 @@ func (h *APIHandler) StreamStop(c *gin.Context) {
 			v.Stop()
 			c.IndentedJSON(200, "OK")
 			log.Printf("Stop %v success ", v)
-			//if v.RTSPClient != nil {
-			//	var stream models.Stream
-			//	stream.URL = v.RTSPClient.URL
-			//	db.SQLite.Delete(stream)
-			//}
 			return
 		}
 	}

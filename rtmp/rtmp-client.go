@@ -78,15 +78,23 @@ func NewRTMPClient(rawUrl string, sendOptionMillis int64, agent string) (client 
 		Agent:     agent,
 		audioSsrc: rand.Uint32(),
 		videoSsrc: rand.Uint32(),
-		SDPRaw: `v=0
+		SDPRaw:    createSDPRaw(14),
+	}
+	return client, nil
+}
+
+func createSDPRaw(pt uint8) string {
+	if pt == 0 {
+		pt = 14
+	}
+	tmpl := `v=0
 o=- 0 0 IN IP4 127.0.0.1
 c=IN IP4 127.0.0.1
 t=0 0
-m=audio 0 RTP/AVP 14
-a=control:trackID=1
-`,
-	}
-	return client, nil
+m=audio 0 RTP/AVP %d
+a=control:trackID=1`
+	sdpStr := fmt.Sprintf(tmpl, pt)
+	return sdpStr
 }
 
 func (client *RTMPClient) Start() bool {
@@ -153,13 +161,7 @@ func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {
 }
 
 func (client *RTMPClient) NewSdp(pt uint8) string {
-	tmpl := `v=0
-o=- 0 0 IN IP4 127.0.0.1
-c=IN IP4 127.0.0.1
-t=0 0
-m=audio 0 RTP/AVP %d
-a=control:trackID=1`
-	sdpStr := fmt.Sprintf(tmpl, pt)
+	sdpStr := createSDPRaw(pt)
 	raw := strings.ReplaceAll(sdpStr, "\n", "\r\n")
 	return raw
 }

@@ -6,14 +6,14 @@ import (
 
 type SessionPuller struct {
 	*Session
-	RTSPClient BaseClient
+	RTPClient BaseClient
 }
 
 func NewSessionPuller(server *Server, client BaseClient) *SessionPuller {
 	session := NewNoneConnSession(server)
 	puller := &SessionPuller{
-		Session:    session,
-		RTSPClient: client,
+		Session:   session,
+		RTPClient: client,
 	}
 	return puller
 }
@@ -36,9 +36,9 @@ func (puller *SessionPuller) GetPath() string {
 
 func (puller *SessionPuller) Stop() {
 	log.Println("Puller Stopped :", puller.ID, "Stoped=", puller.Stoped)
-	if puller.RTSPClient != nil {
-		puller.RTSPClient.Stop()
-		puller.RTSPClient = nil
+	if puller.RTPClient != nil {
+		puller.RTPClient.Stop()
+		puller.RTPClient = nil
 	}
 	if puller.Stoped {
 		return
@@ -50,7 +50,7 @@ func (puller *SessionPuller) Stop() {
 }
 
 func (puller *SessionPuller) Start() {
-	client := puller.RTSPClient
+	client := puller.RTPClient
 	if !client.GetInitFlag() {
 		log.Printf("Pull to push fail.")
 		return

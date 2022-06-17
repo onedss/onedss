@@ -1,25 +1,7 @@
-### Hi 👋
+# OneDss (One's Darwin Streaming Service) #
 
-<!--
-**onedss/onedss** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+OneDss is open source streaming service, focus RTSP/RTMP technology.
 
-Here are some ideas to get you started:
-
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
-OneDss is open source streaming service, focus RTSP/RTMP technology
-
-OneDss是一款开源的流媒体服务器软件，专注于（RTSP/RTMP）相关的流媒体技术
-
-Full name is One's DarwinStreamingService.
-
-全称是One's DarwinStreamingService
+OneDss是一款开源的流媒体服务器软件，专注于（RTSP/RTMP）相关的流媒体技术。
 
 http://www.onedss.com

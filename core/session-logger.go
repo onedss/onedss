@@ -17,7 +17,7 @@ func NewSessionLogger(prefix string) SessionLogger {
 }
 
 func (sessionLogger *SessionLogger) GetLogger() *log.Logger {
-	if sessionLogger != nil {
+	if sessionLogger.innerLogger != nil {
 		return sessionLogger.innerLogger
 	} else {
 		return InfoLogger

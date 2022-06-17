@@ -33,8 +33,7 @@ type RTMPClient struct {
 	OutBytes    int
 	isFirstPack bool
 
-	RTPHandles  []func(*rtsp.RTPPack)
-	StopHandles []func()
+	RTPHandles []func(*rtsp.RTPPack)
 
 	pullSession *PullSession
 }
@@ -68,7 +67,7 @@ func (client *RTMPClient) AddRTPHandles(f func(*rtsp.RTPPack)) {
 }
 
 func (client *RTMPClient) AddStopHandles(f func()) {
-	client.StopHandles = append(client.StopHandles, f)
+	client.pullSession.AddDisposeHandles(f)
 }
 
 func NewRTMPClient(rawUrl string, sendOptionMillis int64, agent string) (client *RTMPClient, err error) {
@@ -102,12 +101,13 @@ a=control:trackID=1`
 }
 
 func (client *RTMPClient) Start() bool {
-	return true
+	err := client.pullSession.Pull(client.URL, client.onReadRtmpAvMsg)
+	return err == nil
 }
 
 func (client *RTMPClient) Stop() {
 	logger := client.GetLogger()
-	logger.Printf("RTMPClient Stop. [%s]", client.URL)
+	logger.Printf("RTMPClient Stop. [%s], Stoped = %v", client.URL, client.Stoped)
 	if client.Stoped {
 		return
 	}
@@ -122,9 +122,8 @@ func (client *RTMPClient) Init(timeout time.Duration) error {
 		option.PullTimeoutMs = 30000
 		option.ReadAvTimeoutMs = 30000
 	})
-	err := client.pullSession.Pull(client.URL, client.onReadRtmpAvMsg)
 	client.InitFlag = true
-	return err
+	return nil
 }
 
 func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {

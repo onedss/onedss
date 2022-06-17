@@ -35,7 +35,7 @@ func (puller *SessionPuller) GetPath() string {
 }
 
 func (puller *SessionPuller) Stop() {
-	log.Println("Puller Stopped :", puller.ID, "Stoped=", puller.Stoped)
+	log.Println("Puller Stopped :", puller.ID, "Stoped =", puller.Stoped)
 	if puller.RTPClient != nil {
 		puller.RTPClient.Stop()
 		puller.RTPClient = nil
@@ -52,7 +52,7 @@ func (puller *SessionPuller) Stop() {
 func (puller *SessionPuller) Start() {
 	client := puller.RTPClient
 	if !client.GetInitFlag() {
-		log.Printf("Pull to push fail.")
+		log.Printf("Pull to push not init.")
 		return
 	}
 	if client.GetCustomPath() != "" {

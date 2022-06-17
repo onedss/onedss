@@ -2,16 +2,15 @@ package rtsp
 
 import (
 	"fmt"
-	"log"
+	"github.com/onedss/onedss/core"
 	"net"
-	"os"
 	"sync"
 
 	"github.com/onedss/onedss/utils"
 )
 
 type Server struct {
-	SessionLogger
+	core.SessionLogger
 	TCPListener    *net.TCPListener
 	TCPPort        int
 	Stoped         bool
@@ -22,7 +21,7 @@ type Server struct {
 }
 
 var Instance *Server = &Server{
-	SessionLogger:  SessionLogger{log.New(os.Stdout, "[RTSPServer] ", log.LstdFlags|log.Lshortfile|log.Lmicroseconds)},
+	SessionLogger:  core.NewSessionLogger("[RTSPServer] "),
 	Stoped:         true,
 	TCPPort:        utils.Conf().Section("rtsp").Key("port").MustInt(554),
 	pushers:        make(map[string]*Pusher),

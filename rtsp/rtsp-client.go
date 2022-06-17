@@ -6,6 +6,7 @@ import (
 	"crypto/md5"
 	"encoding/binary"
 	"fmt"
+	"github.com/onedss/onedss/core"
 	"io"
 	"log"
 	"net"
@@ -24,7 +25,7 @@ import (
 )
 
 type RTSPClient struct {
-	SessionLogger
+	core.SessionLogger
 	Stoped               bool
 	Status               string
 	URL                  string
@@ -119,9 +120,9 @@ func NewRTSPClient(rawUrl string, sendOptionMillis int64, agent string) (client 
 		Agent:                agent,
 		debugLogEnable:       debugLogEnable != 0,
 	}
-	client.innerLogger = log.New(os.Stdout, fmt.Sprintf("[%s] ", client.ID), log.LstdFlags|log.Lshortfile|log.Lmicroseconds)
+	client.SetLogger(log.New(os.Stdout, fmt.Sprintf("[%s] ", client.ID), log.LstdFlags|log.Lshortfile|log.Lmicroseconds))
 	if !utils.Debug {
-		client.innerLogger.SetOutput(utils.GetLogWriter())
+		client.GetLogger().SetOutput(utils.GetLogWriter())
 	}
 	return
 }

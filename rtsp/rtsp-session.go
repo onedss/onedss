@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/onedss/onedss/core"
 	"io"
 	"log"
 	"net"
@@ -58,7 +59,7 @@ func (tt TransType) String() string {
 const UDP_BUF_SIZE = 1048576
 
 type Session struct {
-	SessionLogger
+	core.SessionLogger
 	ID          string
 	Server      *Server
 	privateConn *RichConn
@@ -168,9 +169,9 @@ func NewNoneConnSession(server *Server) *Session {
 		RTPHandles:  make([]func(*RTPPack), 0),
 		StopHandles: make([]func(), 0),
 	}
-	session.innerLogger = log.New(os.Stdout, fmt.Sprintf("[%s]*", session.ID), log.LstdFlags|log.Lshortfile|log.Lmicroseconds)
+	session.SetLogger(log.New(os.Stdout, fmt.Sprintf("[%s]*", session.ID), log.LstdFlags|log.Lshortfile|log.Lmicroseconds))
 	if !utils.Debug {
-		session.innerLogger.SetOutput(utils.GetLogWriter())
+		session.GetLogger().SetOutput(utils.GetLogWriter())
 	}
 	return session
 }
@@ -191,9 +192,9 @@ func NewSession(server *Server, conn *net.TCPConn) *Session {
 		RTPHandles:  make([]func(*RTPPack), 0),
 		StopHandles: make([]func(), 0),
 	}
-	session.innerLogger = log.New(os.Stdout, fmt.Sprintf("[%s] ", session.ID), log.LstdFlags|log.Lshortfile|log.Lmicroseconds)
+	session.SetLogger(log.New(os.Stdout, fmt.Sprintf("[%s] ", session.ID), log.LstdFlags|log.Lshortfile|log.Lmicroseconds))
 	if !utils.Debug {
-		session.innerLogger.SetOutput(utils.GetLogWriter())
+		session.GetLogger().SetOutput(utils.GetLogWriter())
 	}
 	return session
 }

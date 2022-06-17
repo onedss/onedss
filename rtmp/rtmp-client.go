@@ -3,6 +3,7 @@ package rtmp
 import (
 	"bytes"
 	"fmt"
+	"github.com/onedss/onedss/core"
 	"github.com/onedss/onedss/lal/base"
 	"github.com/onedss/onedss/rtprtcp"
 	"github.com/onedss/onedss/rtsp"
@@ -14,7 +15,7 @@ import (
 )
 
 type RTMPClient struct {
-	rtsp.SessionLogger
+	core.SessionLogger
 
 	Stoped      bool
 	URL         string
@@ -105,11 +106,11 @@ func (client *RTMPClient) Start() bool {
 }
 
 func (client *RTMPClient) Stop() {
-	//logger := client.getLogger()
-	//logger.Printf("RTSPClient Stop. [%s]", client.URL)
-	//if client.Stoped {
-	//	return
-	//}
+	logger := client.GetLogger()
+	logger.Printf("RTMPClient Stop. [%s]", client.URL)
+	if client.Stoped {
+		return
+	}
 	client.Stoped = true
 	if client.pullSession != nil {
 		client.pullSession.Dispose()

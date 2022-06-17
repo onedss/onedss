@@ -2,6 +2,7 @@ package rtsp
 
 import (
 	"fmt"
+	"github.com/onedss/onedss/core"
 	"log"
 	"os"
 	"strings"
@@ -12,7 +13,7 @@ import (
 )
 
 type Pusher struct {
-	SessionLogger
+	core.SessionLogger
 	*Session
 
 	players        map[string]*Player //SessionID <-> Player
@@ -36,9 +37,9 @@ func NewPusher(session *Session) (pusher *Pusher) {
 		cond:  sync.NewCond(&sync.Mutex{}),
 		queue: make([]*RTPPack, 0),
 	}
-	pusher.innerLogger = log.New(os.Stdout, fmt.Sprintf("[%s] ", session.ID), log.LstdFlags|log.Lshortfile|log.Lmicroseconds)
+	pusher.SetLogger(log.New(os.Stdout, fmt.Sprintf("[%s] ", session.ID), log.LstdFlags|log.Lshortfile|log.Lmicroseconds))
 	if !utils.Debug {
-		pusher.innerLogger.SetOutput(utils.GetLogWriter())
+		pusher.GetLogger().SetOutput(utils.GetLogWriter())
 	}
 	session.AddRTPHandles(func(pack *RTPPack) {
 		pusher.QueueRTP(pack)

@@ -200,7 +200,7 @@ func NewSession(server *Server, conn *net.TCPConn) *Session {
 
 func (session *Session) Stop() {
 	logger := session.getLogger()
-	logger.Println("Session Stop()")
+	logger.Printf("Session Stop. [%s] %v", session.ID, session.Stoped)
 	if session.Stoped {
 		return
 	}
@@ -228,6 +228,7 @@ func (session *Session) Start() {
 	buf1 := make([]byte, 1)
 	buf2 := make([]byte, 2)
 	logger := session.getLogger()
+	logger.Printf("Session Start. [%s]", session.ID)
 	for !session.Stoped {
 		if _, err := io.ReadFull(session.connRW, buf1); err != nil {
 			logger.Println(session, err)

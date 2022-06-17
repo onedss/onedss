@@ -124,7 +124,7 @@ func (pusher *Pusher) QueueRTP(pack *RTPPack) *Pusher {
 
 func (pusher *Pusher) Start() {
 	logger := pusher.getLogger()
-	logger.Println("Pusher Start() Begin...", pusher.ID)
+	logger.Printf("Pusher Start Begin. [%s]", pusher.ID)
 	for !pusher.Stoped {
 		var pack *RTPPack
 		pusher.cond.L.Lock()

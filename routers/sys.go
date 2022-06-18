@@ -184,7 +184,7 @@ func (h *APIHandler) Login(c *gin.Context) {
 }
 
 /**
- * @api {get} /userInfo 获取当前登录用户信息
+ * @api {get} /userinfo 获取当前登录用户信息
  * @apiGroup sys
  * @apiName UserInfo
  * @apiUse userInfo

@@ -37,6 +37,22 @@ func (p *application) Start(s service.Service) (err error) {
 			return err
 		}
 	}
+	go func() {
+		for range routers.API.RestartChan {
+			log.Println("********** STOP **********")
+			for _, server := range p.servers {
+				server.Stop()
+			}
+			utils.ReloadConf()
+			log.Println("********** START **********")
+			for _, server := range p.servers {
+				err := server.Start()
+				if err != nil {
+					return
+				}
+			}
+		}
+	}()
 	return nil
 }
 

@@ -1,0 +1,34 @@
+
+<html>
+<head>
+    <title>Signaling</title>
+    <meta charset="utf-8">
+</head>
+<body>
+<h3>Signaling works!</h3>
+<p>
+    Run demo for <a class="srs_demo" href="one2one.html?autostart=true">WebRTC: One to One over SFU</a><br/>
+    点击进入<a class="srs_demo" href="one2one.html?autostart=true">Signaling一对一通话演示</a>
+</p>
+<p>
+    Run demo for <a class="srs_demo" href="room.html?autostart=true">WebRTC: Video Room over SFU</a><br/>
+    点击进入<a class="srs_demo" href="room.html?autostart=true">Signaling多人通话演示</a>
+</p>
+<script>
+    let roomName = Number(parseInt(new Date().getTime()*Math.random()*100)).toString(16).substr(0, 7);
+    let elems = document.getElementsByClassName('srs_demo');
+    for (var i = 0; i < elems.length; i++) {
+        let elem = elems.item(i);
+
+        // Use random room.
+        let href = elem.getAttribute('href') + '&room=' + roomName;
+
+        // For run demos on Signaling http server.
+        if (window.location.port === '8080') {
+            href += '&wsp=1989';
+        }
+
+        elem.setAttribute('href', href);
+    }
+</script>
+</body>

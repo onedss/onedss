@@ -32,7 +32,7 @@ function SrsRtcSignalingAsync() {
     // of user to join the room.
     self.connect = async function (schema, host, room, display) {
         var url = schema + '://' + host + '/sig/v1/rtc';
-        self.ws = new WebSocket(url + '?room=' + room + '' + display);
+        self.ws = new WebSocket(url + '?room=' + room + '&display=' + display);
 
         self.ws.onmessage = function(event) {
             var r = JSON.parse(event.data);

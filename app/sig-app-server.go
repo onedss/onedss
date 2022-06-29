@@ -15,12 +15,11 @@ import (
 	"time"
 )
 
-var rooms sync.Map
-var mux *http.ServeMux
-
 type signaling_server struct {
 	httpPort   int
 	httpServer *http.Server
+	rooms      sync.Map
+	mux        *http.ServeMux
 }
 
 func NewSignalingServer(httpPort int) (server *signaling_server) {
@@ -30,22 +29,22 @@ func NewSignalingServer(httpPort int) (server *signaling_server) {
 }
 
 func (p *signaling_server) Start() (err error) {
-	mux = http.NewServeMux()
+	p.mux = http.NewServeMux()
 	p.httpServer = &http.Server{
 		Addr:              fmt.Sprintf(":%d", p.httpPort),
-		Handler:           mux,
+		Handler:           p.mux,
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 
 	wwwDir := filepath.Join(utils.DataDir(), "www-sig")
 	log.Println("www-sig root -->", wwwDir)
-	mux.Handle("/", http.FileServer(http.Dir(wwwDir)))
+	p.mux.Handle("/", http.FileServer(http.Dir(wwwDir)))
 
 	link := fmt.Sprintf("http://%s:%d", utils.LocalIP(), p.httpPort)
 	log.Println("signaling server start -->", link)
 
 	// Key is name of room, value is Room
-	mux.Handle("/sig/v1/rtc", websocket.Handler(func(c *websocket.Conn) {
+	p.mux.Handle("/sig/v1/rtc", websocket.Handler(func(c *websocket.Conn) {
 		ctx, cancel := context.WithCancel(context.Background())
 		defer cancel()
 
@@ -114,7 +113,7 @@ func (p *signaling_server) Start() (err error) {
 						return errors.Wrapf(err, "Unmarshal %s", m)
 					}
 
-					r, _ := rooms.LoadOrStore(obj.Message.Room, &signaling.Room{Name: obj.Message.Room})
+					r, _ := p.rooms.LoadOrStore(obj.Message.Room, &signaling.Room{Name: obj.Message.Room})
 					p := &signaling.Participant{Room: r.(*signaling.Room), Display: obj.Message.Display, Out: outMessages}
 					if err := r.(*signaling.Room).Add(p); err != nil {
 						return errors.Wrapf(err, "join")
@@ -144,7 +143,7 @@ func (p *signaling_server) Start() (err error) {
 						return errors.Wrapf(err, "Unmarshal %s", m)
 					}
 
-					r, _ := rooms.LoadOrStore(obj.Message.Room, &signaling.Room{Name: obj.Message.Room})
+					r, _ := p.rooms.LoadOrStore(obj.Message.Room, &signaling.Room{Name: obj.Message.Room})
 					p := r.(*signaling.Room).Get(obj.Message.Display)
 
 					// Now, the peer is publishing.
@@ -164,7 +163,7 @@ func (p *signaling_server) Start() (err error) {
 						return errors.Wrapf(err, "Unmarshal %s", m)
 					}
 
-					r, _ := rooms.LoadOrStore(obj.Message.Room, &signaling.Room{Name: obj.Message.Room})
+					r, _ := p.rooms.LoadOrStore(obj.Message.Room, &signaling.Room{Name: obj.Message.Room})
 					p := r.(*signaling.Room).Get(obj.Message.Display)
 
 					go r.(*signaling.Room).Notify(ctx, p, action.Message.Action, obj.Message.Call, obj.Message.Data)

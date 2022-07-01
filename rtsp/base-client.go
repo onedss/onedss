@@ -44,8 +44,10 @@ type BaseClient interface {
 
 	Start() bool
 	Stop()
-	Init(timeout time.Duration) error
+	Init(timeout time.Duration, onSdp OnSdp) error
 
 	AddRTPHandles(func(*RTPPack))
 	AddStopHandles(func())
 }
+
+type OnSdp func(sdpRaw string)

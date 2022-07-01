@@ -83,14 +83,16 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 	if form.UdpHostPort != "" {
 		sessionPuller.AddUdpHostPort(form.UdpHostPort)
 	}
-	err = client.Init(time.Duration(form.IdleTimeout) * time.Second)
+	err = client.Init(time.Duration(form.IdleTimeout)*time.Second, func(sdpRaw string) {
+		log.Printf("SDPRaw: \n%s", sdpRaw)
+		log.Printf("Pull to push %v success ", form)
+		go sessionPuller.Start()
+	})
 	if err != nil {
 		log.Printf("Pull stream err :%v", err)
 		c.AbortWithStatusJSON(http.StatusBadRequest, fmt.Sprintf("Pull stream err: %v", err))
 		return
 	}
-	log.Printf("Pull to push %v success ", form)
-	go sessionPuller.Start()
 	// save to db.
 	saveToDatabase(form)
 	c.IndentedJSON(200, sessionPuller.GetID())

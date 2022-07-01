@@ -2,6 +2,7 @@ package rtmp
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"github.com/onedss/onedss/core"
 	"github.com/onedss/onedss/lal/base"
@@ -36,6 +37,8 @@ type RTMPClient struct {
 	RTPHandles []func(*rtsp.RTPPack)
 
 	pullSession *PullSession
+
+	onSdp rtsp.OnSdp
 }
 
 func (client *RTMPClient) String() string {
@@ -101,8 +104,7 @@ a=control:trackID=1`
 }
 
 func (client *RTMPClient) Start() bool {
-	err := client.pullSession.Pull(client.URL, client.onReadRtmpAvMsg)
-	return err == nil
+	return client.InitFlag
 }
 
 func (client *RTMPClient) Stop() {
@@ -117,16 +119,37 @@ func (client *RTMPClient) Stop() {
 	}
 }
 
-func (client *RTMPClient) Init(timeout time.Duration) error {
+func (client *RTMPClient) Init(timeout time.Duration, onSdp rtsp.OnSdp) error {
+	client.onSdp = onSdp
 	client.pullSession = NewPullSession(func(option *PullSessionOption) {
 		option.PullTimeoutMs = 30000
 		option.ReadAvTimeoutMs = 30000
 	})
+	if err := client.pullSession.Pull(client.URL, client.onReadRtmpAvMsg); err != nil {
+		return err
+	}
+	onSdp(client.SDPRaw)
+
 	client.InitFlag = true
 	return nil
 }
 
 func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {
+	switch msg.Header.MsgTypeId {
+	case base.RtmpTypeIdMetadata:
+		return
+	case base.RtmpTypeIdAudio:
+		if len(msg.Payload) <= 2 {
+			log.Printf("rtmp msg too short, ignore. header=%+v, payload=%s", msg.Header, hex.Dump(msg.Payload))
+			return
+		}
+	case base.RtmpTypeIdVideo:
+		if len(msg.Payload) <= 5 {
+			log.Printf("rtmp msg too short, ignore. header=%+v, payload=%s", msg.Header, hex.Dump(msg.Payload))
+			return
+		}
+	}
+
 	if msg.Header.MsgTypeId == base.RtmpTypeIdMetadata {
 		// noop
 		return

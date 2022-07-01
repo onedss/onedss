@@ -520,17 +520,18 @@ func (client *RTSPClient) startStream() {
 	}
 }
 
-func (client *RTSPClient) Init(timeout time.Duration) (err error) {
+func (client *RTSPClient) Init(timeout time.Duration, onSdp OnSdp) (err error) {
 	if timeout == 0 {
 		timeoutMillis := utils.Conf().Section("rtsp").Key("timeout").MustInt(0)
 		timeout = time.Duration(timeoutMillis) * time.Millisecond
 	}
-	err = client.requestStream(timeout)
-	if err != nil {
-		return
+	if err = client.requestStream(timeout); err != nil {
+		return err
 	}
+	onSdp(client.SDPRaw)
+
 	client.InitFlag = true
-	return
+	return nil
 }
 
 func (client *RTSPClient) Start() bool {

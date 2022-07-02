@@ -6,11 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/onedss/lal/pkg/aac"
-	"github.com/onedss/onedss/lal/base"
 	"strings"
 )
 
-func Pack(vps, sps, pps, asc, mpa []byte) (sdpRaw string, err error) {
+func Pack(vps, sps, pps, asc, mpa []byte, agent string) (sdpRaw string, err error) {
 	// 判断音频、视频是否存在，以及视频是H264还是H265
 	var hasAudio, isMPA, isAAC, hasVideo, isHevc bool
 	if sps != nil && pps != nil {
@@ -53,7 +52,7 @@ s=No Name
 c=IN IP4 127.0.0.1
 t=0 0
 a=tool:%s
-`, base.LalPackSdp)
+`, agent)
 
 	streamid := 0
 

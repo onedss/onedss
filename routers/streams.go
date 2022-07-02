@@ -99,7 +99,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 }
 
 func createRtmpClient(form StreamStartRequest) (rtsp.BaseClient, error) {
-	agent := fmt.Sprintf("OneDSS Client/%s", BuildVersion)
+	agent := fmt.Sprintf("%s/%s", AgentName, BuildVersion)
 	if BuildDateTime != "" {
 		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)
 	}
@@ -120,7 +120,7 @@ func createRtmpClient(form StreamStartRequest) (rtsp.BaseClient, error) {
 }
 
 func createRTSPClient(form StreamStartRequest) (rtsp.BaseClient, error) {
-	agent := fmt.Sprintf("OneDSS Client/%s", BuildVersion)
+	agent := fmt.Sprintf("%s/%s", AgentName, BuildVersion)
 	if BuildDateTime != "" {
 		agent = fmt.Sprintf("%s(%s)", agent, BuildDateTime)
 	}

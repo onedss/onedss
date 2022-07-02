@@ -5,6 +5,7 @@ import "github.com/onedss/onedss/utils"
 var (
 	BuildVersion  = "v1.0"
 	BuildDateTime = "2022-06-01"
+	AgentName     = "OneDSS Client"
 )
 
 type PercentData struct {

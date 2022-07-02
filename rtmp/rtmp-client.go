@@ -122,20 +122,22 @@ func (client *RTMPClient) Stop() {
 
 func (client *RTMPClient) Init(timeout time.Duration, onSdp rtsp.OnSdp) error {
 	client.onSdp = onSdp
+
 	client.pullSession = NewPullSession(func(option *PullSessionOption) {
 		option.PullTimeoutMs = 30000
 		option.ReadAvTimeoutMs = 30000
 	})
+	client.InitFlag = true
+
 	if err := client.pullSession.Pull(client.URL, client.onReadRtmpAvMsg); err != nil {
 		return err
 	}
+
 	if client.SDPRaw != "" {
 		onSdp(client.SDPRaw)
 	} else {
 		log.Printf("Wating a moment to callback onSdp().")
 	}
-
-	client.InitFlag = true
 	return nil
 }
 
@@ -171,20 +173,21 @@ func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {
 
 		if msg.IsAvcKeySeqHeader() || msg.IsHevcKeySeqHeader() {
 			if msg.IsAvcKeySeqHeader() {
-				client.sps, client.pps, err = avc.ParseSpsPpsFromSeqHeader(msg.Payload)
+				client.sps, client.pps, err = avc.ParseSpsPpsFromSeqHeader(msg.Clone().Payload)
 				if err != nil {
 					return
 				}
-				client.sps = nil
-				client.pps = nil
+				//client.vps = nil
+				//client.sps = nil
+				//client.pps = nil
 			} else if msg.IsHevcKeySeqHeader() {
-				client.vps, client.sps, client.pps, err = hevc.ParseVpsSpsPpsFromSeqHeader(msg.Payload)
+				client.vps, client.sps, client.pps, err = hevc.ParseVpsSpsPpsFromSeqHeader(msg.Clone().Payload)
 				if err != nil {
 					return
 				}
-				client.vps = nil
-				client.sps = nil
-				client.pps = nil
+				//client.vps = nil
+				//client.sps = nil
+				//client.pps = nil
 			}
 			client.doAnalyze()
 			return
@@ -235,7 +238,7 @@ func (client *RTMPClient) doAnalyze() {
 		}
 
 		// 回调sdp
-		sdpRaw, err := sdp.Pack(client.vps, client.sps, client.pps, client.asc, client.mpa)
+		sdpRaw, err := sdp.Pack(client.vps, client.sps, client.pps, client.asc, client.mpa, client.Agent)
 		if err != nil {
 			log.Println("sdp pack error!")
 			return
@@ -296,12 +299,25 @@ func (client *RTMPClient) remux(msg base.RtmpMsg) {
 	for i := range rtppkts {
 		pkt := rtppkts[i]
 		rtpBuf := bytes.NewBuffer(pkt.Raw)
-		rtpPack := &rtsp.RTPPack{
-			Type:   rtsp.RTP_TYPE_AUDIO,
-			Buffer: rtpBuf,
+		var rtpPack *rtsp.RTPPack
+		if pkt.Header.PacketType == (uint8)(client.audioPt) {
+			//log.Println("PacketType =", pkt.Header.PacketType, "audioPt =", client.audioPt)
+			rtpPack = &rtsp.RTPPack{
+				Type:   rtsp.RTP_TYPE_AUDIO,
+				Buffer: rtpBuf,
+			}
+		}
+		if pkt.Header.PacketType == (uint8)(client.videoPt) {
+			//log.Println("PacketType =", pkt.Header.PacketType, "videoPt =", client.videoPt)
+			rtpPack = &rtsp.RTPPack{
+				Type:   rtsp.RTP_TYPE_VIDEO,
+				Buffer: rtpBuf,
+			}
 		}
 		for _, h := range client.RTPHandles {
-			h(rtpPack)
+			if rtpPack != nil {
+				h(rtpPack)
+			}
 		}
 	}
 	if len(rtppkts) > 0 {

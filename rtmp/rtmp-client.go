@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
+	"github.com/onedss/lal/pkg/sdp"
 	"github.com/onedss/onedss/core"
 	"github.com/onedss/onedss/lal/base"
 	"github.com/onedss/onedss/rtprtcp"
@@ -13,6 +14,11 @@ import (
 	"net/url"
 	"strings"
 	"time"
+)
+
+var (
+	// config
+	maxAnalyzeAvMsgSize = 16
 )
 
 type RTMPClient struct {
@@ -26,9 +32,8 @@ type RTMPClient struct {
 	SDPRaw      string
 	InitFlag    bool
 
-	Agent       string
-	audioSsrc   uint32
-	videoSsrc   uint32
+	Agent string
+
 	seq         uint16
 	InBytes     int
 	OutBytes    int
@@ -38,7 +43,15 @@ type RTMPClient struct {
 
 	pullSession *PullSession
 
-	onSdp rtsp.OnSdp
+	onSdp              rtsp.OnSdp
+	analyzeDone        bool
+	msgCache           []base.RtmpMsg
+	vps, sps, pps, asc []byte
+	audioPt            base.AvPacketPt
+	videoPt            base.AvPacketPt
+
+	audioSsrc uint32
+	videoSsrc uint32
 }
 
 func (client *RTMPClient) String() string {
@@ -128,7 +141,11 @@ func (client *RTMPClient) Init(timeout time.Duration, onSdp rtsp.OnSdp) error {
 	if err := client.pullSession.Pull(client.URL, client.onReadRtmpAvMsg); err != nil {
 		return err
 	}
-	onSdp(client.SDPRaw)
+	if client.SDPRaw != "" {
+		onSdp(client.SDPRaw)
+	} else {
+		log.Printf("Wating a moment to callback onSdp().")
+	}
 
 	client.InitFlag = true
 	return nil
@@ -154,6 +171,59 @@ func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {
 		// noop
 		return
 	}
+	client.remux(msg)
+}
+
+func (client *RTMPClient) doAnalyze() {
+	if client.analyzeDone {
+		return
+	}
+
+	if client.isAnalyzeEnough() {
+		if client.sps != nil && client.pps != nil {
+			if client.vps != nil {
+				client.videoPt = base.AvPacketPtHevc
+			} else {
+				client.videoPt = base.AvPacketPtAvc
+			}
+		}
+		if client.asc != nil {
+			client.audioPt = base.AvPacketPtAac
+		}
+
+		// 回调sdp
+		_, err := sdp.Pack(client.vps, client.sps, client.pps, client.asc)
+		if err != nil {
+			log.Println("sdp pack error!")
+			return
+		}
+		//client.onSdp(ctx)
+
+		// 分析阶段缓存的数据
+		for i := range client.msgCache {
+			client.remux(client.msgCache[i])
+		}
+		client.msgCache = nil
+
+		client.analyzeDone = true
+	}
+}
+
+func (client *RTMPClient) isAnalyzeEnough() bool {
+	// 音视频头都收集好了
+	if client.sps != nil && client.pps != nil && client.asc != nil {
+		return true
+	}
+
+	// 达到分析包数阈值了
+	if len(client.msgCache) >= maxAnalyzeAvMsgSize {
+		return true
+	}
+
+	return false
+}
+
+func (client *RTMPClient) remux(msg base.RtmpMsg) {
 	if msg.Header.MsgTypeId == base.RtmpTypeIdAudio {
 		controlByte := msg.Payload[0]
 		control := parseRtmpControl(controlByte)
@@ -194,7 +264,8 @@ func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {
 
 func (client *RTMPClient) NewSdp(pt uint8) string {
 	sdpStr := createSDPRaw(pt)
-	raw := strings.ReplaceAll(sdpStr, "\n", "\r\n")
+	temp := strings.ReplaceAll(sdpStr, "\r\n", "\n")
+	raw := strings.ReplaceAll(temp, "\n", "\r\n")
 	return raw
 }
 

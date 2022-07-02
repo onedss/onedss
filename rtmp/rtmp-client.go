@@ -175,11 +175,16 @@ func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {
 				if err != nil {
 					return
 				}
+				client.sps = nil
+				client.pps = nil
 			} else if msg.IsHevcKeySeqHeader() {
 				client.vps, client.sps, client.pps, err = hevc.ParseVpsSpsPpsFromSeqHeader(msg.Payload)
 				if err != nil {
 					return
 				}
+				client.vps = nil
+				client.sps = nil
+				client.pps = nil
 			}
 			client.doAnalyze()
 			return
@@ -290,8 +295,7 @@ func (client *RTMPClient) remux(msg base.RtmpMsg) {
 	}
 	for i := range rtppkts {
 		pkt := rtppkts[i]
-		rtpPacket := rtprtcp.MakeRtpPacket(pkt.Header, pkt.Raw)
-		rtpBuf := bytes.NewBuffer(rtpPacket.Raw)
+		rtpBuf := bytes.NewBuffer(pkt.Raw)
 		rtpPack := &rtsp.RTPPack{
 			Type:   rtsp.RTP_TYPE_AUDIO,
 			Buffer: rtpBuf,

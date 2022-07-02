@@ -182,17 +182,11 @@ func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {
 				if err != nil {
 					return
 				}
-				//client.vps = nil
-				//client.sps = nil
-				//client.pps = nil
 			} else if msg.IsHevcKeySeqHeader() {
 				client.vps, client.sps, client.pps, err = hevc.ParseVpsSpsPpsFromSeqHeader(msg.Clone().Payload)
 				if err != nil {
 					return
 				}
-				//client.vps = nil
-				//client.sps = nil
-				//client.pps = nil
 			}
 			client.doAnalyze()
 			return

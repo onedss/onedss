@@ -4,15 +4,17 @@ import (
 	"bytes"
 	"encoding/hex"
 	"fmt"
-	"github.com/onedss/lal/pkg/sdp"
+	"github.com/onedss/lal/pkg/aac"
 	"github.com/onedss/onedss/core"
+	"github.com/onedss/onedss/lal/avc"
 	"github.com/onedss/onedss/lal/base"
+	"github.com/onedss/onedss/lal/hevc"
 	"github.com/onedss/onedss/rtprtcp"
 	"github.com/onedss/onedss/rtsp"
+	"github.com/onedss/onedss/sdp"
 	"log"
 	"math/rand"
 	"net/url"
-	"strings"
 	"time"
 )
 
@@ -34,24 +36,25 @@ type RTMPClient struct {
 
 	Agent string
 
-	seq         uint16
-	InBytes     int
-	OutBytes    int
-	isFirstPack bool
+	seq      uint16
+	InBytes  int
+	OutBytes int
 
 	RTPHandles []func(*rtsp.RTPPack)
 
 	pullSession *PullSession
 
-	onSdp              rtsp.OnSdp
-	analyzeDone        bool
-	msgCache           []base.RtmpMsg
-	vps, sps, pps, asc []byte
-	audioPt            base.AvPacketPt
-	videoPt            base.AvPacketPt
+	onSdp                   rtsp.OnSdp
+	analyzeDone             bool
+	msgCache                []base.RtmpMsg
+	vps, sps, pps, asc, mpa []byte
+	audioPt                 base.AvPacketPt
+	videoPt                 base.AvPacketPt
 
-	audioSsrc uint32
-	videoSsrc uint32
+	audioSsrc   uint32
+	videoSsrc   uint32
+	audioPacker *rtprtcp.RtpPacker
+	videoPacker *rtprtcp.RtpPacker
 }
 
 func (client *RTMPClient) String() string {
@@ -97,23 +100,8 @@ func NewRTMPClient(rawUrl string, sendOptionMillis int64, agent string) (client 
 		Agent:     agent,
 		audioSsrc: rand.Uint32(),
 		videoSsrc: rand.Uint32(),
-		SDPRaw:    createSDPRaw(14),
 	}
 	return client, nil
-}
-
-func createSDPRaw(pt uint8) string {
-	if pt == 0 {
-		pt = 14
-	}
-	tmpl := `v=0
-o=- 0 0 IN IP4 127.0.0.1
-c=IN IP4 127.0.0.1
-t=0 0
-m=audio 0 RTP/AVP %d
-a=control:trackID=1`
-	sdpStr := fmt.Sprintf(tmpl, pt)
-	return sdpStr
 }
 
 func (client *RTMPClient) Start() bool {
@@ -152,6 +140,8 @@ func (client *RTMPClient) Init(timeout time.Duration, onSdp rtsp.OnSdp) error {
 }
 
 func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {
+	var err error
+
 	switch msg.Header.MsgTypeId {
 	case base.RtmpTypeIdMetadata:
 		return
@@ -171,6 +161,52 @@ func (client *RTMPClient) onReadRtmpAvMsg(msg base.RtmpMsg) {
 		// noop
 		return
 	}
+
+	// 我们需要先接收一部分rtmp数据，得到音频头、视频头
+	// 并且考虑，流中只有音频或只有视频的情况
+	// 我们把前面这个阶段叫做Analyze分析阶段
+
+	if !client.analyzeDone {
+		client.msgCache = append(client.msgCache, msg.Clone())
+
+		if msg.IsAvcKeySeqHeader() || msg.IsHevcKeySeqHeader() {
+			if msg.IsAvcKeySeqHeader() {
+				client.sps, client.pps, err = avc.ParseSpsPpsFromSeqHeader(msg.Payload)
+				if err != nil {
+					return
+				}
+			} else if msg.IsHevcKeySeqHeader() {
+				client.vps, client.sps, client.pps, err = hevc.ParseVpsSpsPpsFromSeqHeader(msg.Payload)
+				if err != nil {
+					return
+				}
+			}
+			client.doAnalyze()
+			return
+		}
+
+		if msg.IsAacSeqHeader() {
+			client.asc = msg.Clone().Payload[2:]
+			client.doAnalyze()
+			return
+		}
+
+		if msg.IsMp3SeqHeader() {
+			client.mpa = msg.Clone().Payload[1:]
+			client.doAnalyze()
+			return
+		}
+
+		client.doAnalyze()
+		return
+	}
+
+	// 正常阶段
+
+	// 音视频头已通过sdp回调，rtp数据中不再包含音视频头
+	if msg.IsAvcKeySeqHeader() || msg.IsHevcKeySeqHeader() || msg.IsAacSeqHeader() {
+		return
+	}
 	client.remux(msg)
 }
 
@@ -178,7 +214,6 @@ func (client *RTMPClient) doAnalyze() {
 	if client.analyzeDone {
 		return
 	}
-
 	if client.isAnalyzeEnough() {
 		if client.sps != nil && client.pps != nil {
 			if client.vps != nil {
@@ -190,14 +225,18 @@ func (client *RTMPClient) doAnalyze() {
 		if client.asc != nil {
 			client.audioPt = base.AvPacketPtAac
 		}
+		if client.mpa != nil {
+			client.audioPt = base.AvPacketPtMpa
+		}
 
 		// 回调sdp
-		_, err := sdp.Pack(client.vps, client.sps, client.pps, client.asc)
+		sdpRaw, err := sdp.Pack(client.vps, client.sps, client.pps, client.asc, client.mpa)
 		if err != nil {
 			log.Println("sdp pack error!")
 			return
 		}
-		//client.onSdp(ctx)
+		client.SDPRaw = sdpRaw
+		client.onSdp(sdpRaw)
 
 		// 分析阶段缓存的数据
 		for i := range client.msgCache {
@@ -210,13 +249,16 @@ func (client *RTMPClient) doAnalyze() {
 }
 
 func (client *RTMPClient) isAnalyzeEnough() bool {
+	var analyzeAvMsgSize int = len(client.msgCache)
 	// 音视频头都收集好了
-	if client.sps != nil && client.pps != nil && client.asc != nil {
+	if client.sps != nil && client.pps != nil && (client.asc != nil || client.mpa != nil) {
+		log.Printf("audio and video is ok. analyzeAvMsgSize=%d", analyzeAvMsgSize)
 		return true
 	}
 
 	// 达到分析包数阈值了
-	if len(client.msgCache) >= maxAnalyzeAvMsgSize {
+	if analyzeAvMsgSize >= maxAnalyzeAvMsgSize {
+		log.Printf("analyzeAvMsgSize=%d", analyzeAvMsgSize)
 		return true
 	}
 
@@ -224,19 +266,54 @@ func (client *RTMPClient) isAnalyzeEnough() bool {
 }
 
 func (client *RTMPClient) remux(msg base.RtmpMsg) {
+	var packer *rtprtcp.RtpPacker
+	var rtppkts []rtprtcp.RtpPacket
+	switch msg.Header.MsgTypeId {
+	case base.RtmpTypeIdAudio:
+		packer = client.getAudioPacker()
+		if packer != nil {
+			rtppkts = packer.Pack(base.AvPacket{
+				Timestamp:   msg.Header.TimestampAbs,
+				PayloadType: client.audioPt,
+				Payload:     msg.Payload[2:],
+			})
+		}
+	case base.RtmpTypeIdVideo:
+		packer = client.getVideoPacker()
+		if packer != nil {
+			rtppkts = client.getVideoPacker().Pack(base.AvPacket{
+				Timestamp:   msg.Header.TimestampAbs,
+				PayloadType: client.videoPt,
+				Payload:     msg.Payload[5:],
+			})
+		}
+	}
+	for i := range rtppkts {
+		pkt := rtppkts[i]
+		rtpPacket := rtprtcp.MakeRtpPacket(pkt.Header, pkt.Raw)
+		rtpBuf := bytes.NewBuffer(rtpPacket.Raw)
+		rtpPack := &rtsp.RTPPack{
+			Type:   rtsp.RTP_TYPE_AUDIO,
+			Buffer: rtpBuf,
+		}
+		for _, h := range client.RTPHandles {
+			h(rtpPack)
+		}
+	}
+	if len(rtppkts) > 0 {
+		return
+	}
 	if msg.Header.MsgTypeId == base.RtmpTypeIdAudio {
 		controlByte := msg.Payload[0]
 		control := parseRtmpControl(controlByte)
+		if control.PacketType != base.RtpPacketTypeMpa {
+			log.Println("audio is not mpa.")
+			return
+		}
 		pkg := base.AvPacket{
 			Timestamp:   msg.Header.TimestampAbs,
 			PayloadType: (base.AvPacketPt)(control.PacketType),
 			Payload:     msg.Payload[1:],
-		}
-		if !client.isFirstPack {
-			client.isFirstPack = true
-			client.SDPRaw = client.NewSdp(control.PacketType)
-			log.Println(client.SDPRaw)
-			log.Printf("%+v", control)
 		}
 		payload := make([]byte, 4+len(pkg.Payload))
 		copy(payload[4:], pkg.Payload)
@@ -261,12 +338,47 @@ func (client *RTMPClient) remux(msg base.RtmpMsg) {
 		}
 	}
 }
+func (r *RTMPClient) getAudioPacker() *rtprtcp.RtpPacker {
+	if r.asc == nil {
+		return nil
+	}
 
-func (client *RTMPClient) NewSdp(pt uint8) string {
-	sdpStr := createSDPRaw(pt)
-	temp := strings.ReplaceAll(sdpStr, "\r\n", "\n")
-	raw := strings.ReplaceAll(temp, "\n", "\r\n")
-	return raw
+	if r.audioPacker == nil {
+		// TODO(chef): ssrc随机产生，并且整个lal没有在setup信令中传递ssrc
+		r.audioSsrc = rand.Uint32()
+
+		ascCtx, err := aac.NewAscContext(r.asc)
+		if err != nil {
+			log.Printf("parse asc failed. err=%+v", err)
+			return nil
+		}
+		clockRate, err := ascCtx.GetSamplingFrequency()
+		if err != nil {
+			log.Printf("get sampling frequency failed. err=%+v, asc=%s", err, hex.Dump(r.asc))
+		}
+
+		pp := rtprtcp.NewRtpPackerPayloadAac()
+		r.audioPacker = rtprtcp.NewRtpPacker(pp, clockRate, r.audioSsrc)
+	}
+	return r.audioPacker
+}
+
+func (r *RTMPClient) getVideoPacker() *rtprtcp.RtpPacker {
+	if r.sps == nil {
+		return nil
+	}
+	if r.videoPacker == nil {
+		r.videoSsrc = rand.Uint32()
+		pp := rtprtcp.NewRtpPackerPayloadAvcHevc(r.videoPt, func(option *rtprtcp.RtpPackerPayloadAvcHevcOption) {
+			option.Typ = rtprtcp.RtpPackerPayloadAvcHevcTypeAvcc
+		})
+		r.videoPacker = rtprtcp.NewRtpPacker(pp, 90000, r.videoSsrc)
+	}
+	return r.videoPacker
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }
 
 func (client *RTMPClient) genSeq() (ret uint16) {

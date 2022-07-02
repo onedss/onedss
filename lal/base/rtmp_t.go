@@ -63,8 +63,10 @@ const (
 	//     AACPacketType UI8
 	//     Data          UI8[n]
 	RtmpSoundFormatAac         uint8 = 10 // 注意，视频的CodecId是后4位，音频是前4位
+	RtmpSoundFormatMP3               = 2
 	RtmpAacPacketTypeSeqHeader       = 0
 	RtmpAacPacketTypeRaw             = 1
+	RtmpMp3PacketTypeSeqHeader       = 255
 )
 
 const (
@@ -123,6 +125,10 @@ func (msg RtmpMsg) IsVideoKeyNalu() bool {
 
 func (msg RtmpMsg) IsAacSeqHeader() bool {
 	return msg.Header.MsgTypeId == RtmpTypeIdAudio && (msg.Payload[0]>>4) == RtmpSoundFormatAac && msg.Payload[1] == RtmpAacPacketTypeSeqHeader
+}
+
+func (msg RtmpMsg) IsMp3SeqHeader() bool {
+	return msg.Header.MsgTypeId == RtmpTypeIdAudio && (msg.Payload[0]>>4) == RtmpSoundFormatMP3 && msg.Payload[1] == RtmpMp3PacketTypeSeqHeader
 }
 
 func (msg RtmpMsg) Clone() (ret RtmpMsg) {

@@ -84,7 +84,7 @@ func (h *APIHandler) StreamStart(c *gin.Context) {
 		sessionPuller.AddUdpHostPort(form.UdpHostPort)
 	}
 	err = client.Init(time.Duration(form.IdleTimeout)*time.Second, func(sdpRaw string) {
-		log.Printf("SDPRaw: \n%s", sdpRaw)
+		log.Printf(">>> SDPRaw: \n%s", sdpRaw)
 		log.Printf("Pull to push %v success ", form)
 		go sessionPuller.Start()
 	})

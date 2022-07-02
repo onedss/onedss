@@ -525,12 +525,12 @@ func (client *RTSPClient) Init(timeout time.Duration, onSdp OnSdp) (err error) {
 		timeoutMillis := utils.Conf().Section("rtsp").Key("timeout").MustInt(0)
 		timeout = time.Duration(timeoutMillis) * time.Millisecond
 	}
+	client.InitFlag = true
+
 	if err = client.requestStream(timeout); err != nil {
 		return err
 	}
 	onSdp(client.SDPRaw)
-
-	client.InitFlag = true
 	return nil
 }
 

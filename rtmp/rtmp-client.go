@@ -419,7 +419,7 @@ func parseRtmpControl(control byte) rtprtcp.RtpControl {
 	case base.RtmpControlAAC:
 		rtmpBodyControl.PacketType = uint8(base.RtpPacketTypeAac)
 	default:
-		rtmpBodyControl.PacketType = uint8(base.RtpPacketTypeMpa)
+		rtmpBodyControl.PacketType = uint8(base.RtpPacketTypeAac)
 	}
 	switch sampleRate {
 	case 0:

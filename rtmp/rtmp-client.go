@@ -421,13 +421,32 @@ func parseRtmpControl(control byte) rtprtcp.RtpControl {
 	default:
 		rtmpBodyControl.PacketType = uint8(base.RtpPacketTypeMpa)
 	}
-	if sampleRate == 3 {
+	switch sampleRate {
+	case 0:
+		rtmpBodyControl.SampleRate = 5.5
+	case 1:
+		rtmpBodyControl.SampleRate = 11
+	case 2:
+		rtmpBodyControl.SampleRate = 22
+	case 3:
+		rtmpBodyControl.SampleRate = 44.1
+	default:
 		rtmpBodyControl.SampleRate = 44.1
 	}
-	if sampleSize == 1 {
+	switch sampleSize {
+	case 0:
+		rtmpBodyControl.SampleSize = 8
+	case 1:
+		rtmpBodyControl.SampleSize = 16
+	default:
 		rtmpBodyControl.SampleSize = 16
 	}
-	if channelNum == 1 {
+	switch channelNum {
+	case 0:
+		rtmpBodyControl.ChannelNum = 1
+	case 1:
+		rtmpBodyControl.ChannelNum = 2
+	default:
 		rtmpBodyControl.ChannelNum = 2
 	}
 	return rtmpBodyControl

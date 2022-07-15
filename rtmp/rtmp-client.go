@@ -277,7 +277,7 @@ func (client *RTMPClient) remux(msg base.RtmpMsg) {
 	var rtppkts []rtprtcp.RtpPacket
 	switch msg.Header.MsgTypeId {
 	case base.RtmpTypeIdAudio:
-		packer = client.getAudioPacker()
+		packer = client.getAACPacker()
 		if packer != nil {
 			rtppkts = packer.Pack(base.AvPacket{
 				Timestamp:   msg.Header.TimestampAbs,
@@ -357,7 +357,7 @@ func (client *RTMPClient) remux(msg base.RtmpMsg) {
 		}
 	}
 }
-func (r *RTMPClient) getAudioPacker() *rtprtcp.RtpPacker {
+func (r *RTMPClient) getAACPacker() *rtprtcp.RtpPacker {
 	if r.asc == nil {
 		return nil
 	}

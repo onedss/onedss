@@ -127,6 +127,10 @@ func (msg RtmpMsg) IsAacSeqHeader() bool {
 	return msg.Header.MsgTypeId == RtmpTypeIdAudio && (msg.Payload[0]>>4) == RtmpSoundFormatAac && msg.Payload[1] == RtmpAacPacketTypeSeqHeader
 }
 
+func (msg RtmpMsg) IsAacRaw() bool {
+	return msg.Header.MsgTypeId == RtmpTypeIdAudio && (msg.Payload[0]>>4) == RtmpSoundFormatAac && msg.Payload[1] == RtmpAacPacketTypeRaw
+}
+
 func (msg RtmpMsg) IsMp3SeqHeader() bool {
 	return msg.Header.MsgTypeId == RtmpTypeIdAudio && (msg.Payload[0]>>4) == RtmpSoundFormatMP3 && msg.Payload[1] == RtmpMp3PacketTypeSeqHeader
 }

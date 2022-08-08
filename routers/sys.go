@@ -17,6 +17,7 @@ import (
 	"github.com/onedss/sessions"
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/mem"
+	ionet "github.com/shirou/gopsutil/net"
 )
 
 /**
@@ -34,6 +35,8 @@ var API = &APIHandler{
 var (
 	memData    []PercentData = make([]PercentData, 0)
 	cpuData    []PercentData = make([]PercentData, 0)
+	ioRecvData []CountData   = make([]CountData, 0)
+	ioSentData []CountData   = make([]CountData, 0)
 	pusherData []CountData   = make([]CountData, 0)
 	playerData []CountData   = make([]CountData, 0)
 )
@@ -48,9 +51,12 @@ func init() {
 			case <-ticker.C:
 				mem, _ := mem.VirtualMemory()
 				cpu, _ := cpu.Percent(0, false)
+				ioCounter, _ := ionet.IOCounters(false)
 				now := utils.DateTime(time.Now())
 				memData = append(memData, PercentData{Time: now, Used: mem.UsedPercent / 100})
 				cpuData = append(cpuData, PercentData{Time: now, Used: cpu[0] / 100})
+				ioRecvData = append(ioRecvData, CountData{Time: now, Total: uint(ioCounter[0].BytesRecv)})
+				ioSentData = append(ioSentData, CountData{Time: now, Total: uint(ioCounter[0].BytesSent)})
 				pusherData = append(pusherData, CountData{Time: now, Total: uint(rtsp.Instance.GetPusherSize())})
 				playerCnt := 0
 				for _, pusher := range rtsp.Instance.GetPushers() {
@@ -64,12 +70,19 @@ func init() {
 				if len(cpuData) > timeSize {
 					cpuData = cpuData[len(cpuData)-timeSize:]
 				}
+				if len(ioRecvData) > timeSize {
+					ioRecvData = ioRecvData[len(ioRecvData)-timeSize:]
+				}
+				if len(ioSentData) > timeSize {
+					ioSentData = ioSentData[len(ioSentData)-timeSize:]
+				}
 				if len(pusherData) > timeSize {
 					pusherData = pusherData[len(pusherData)-timeSize:]
 				}
 				if len(playerData) > timeSize {
 					playerData = playerData[len(playerData)-timeSize:]
 				}
+				//log.Printf("%v", ioCounter)
 			}
 		}
 	}()
@@ -119,6 +132,8 @@ func (h *APIHandler) GetServerInfo(c *gin.Context) {
 		"cpuData":          cpuData,
 		"pusherData":       pusherData,
 		"playerData":       playerData,
+		"ioRecvData":       ioRecvData,
+		"ioSentData":       ioSentData,
 	})
 }
 

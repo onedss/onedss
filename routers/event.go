@@ -18,7 +18,8 @@ import (
  */
 func (h *APIHandler) AlarmEvent(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{
-		"result": 0,
-		"reason": "ok",
+		"success": true,
+		"code":    0,
+		"msg":     "操作成功",
 	})
 }

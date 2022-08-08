@@ -10,11 +10,11 @@ import (
  */
 
 /**
- * @api {get} /api/v1/alarm_event 接收推送事件
+ * @api {get} /api/v1/event/receive 接收推送事件
  * @apiGroup event
  * @apiName AlarmEvent
- * @apiSuccess (200) {String} result 返回码
- * @apiSuccess (200) {String} reason 描述信息
+ * @apiSuccess (200) {String} code 返回码
+ * @apiSuccess (200) {String} msg 描述信息
  */
 func (h *APIHandler) AlarmEvent(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, gin.H{

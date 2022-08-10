@@ -1,8 +1,15 @@
 package routers
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/onedss/onedss/utils"
+	"io"
+	"log"
 	"net/http"
+	"os"
+	"path/filepath"
+	"time"
 )
 
 /**
@@ -17,9 +24,77 @@ import (
  * @apiSuccess (200) {String} msg 描述信息
  */
 func (h *APIHandler) AlarmEvent(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, gin.H{
-		"success": true,
-		"code":    0,
-		"msg":     "操作成功",
-	})
+	var contentLength int64
+	errorCode := 0
+	defer func() {
+		if errorCode == 0 {
+			c.IndentedJSON(http.StatusOK, gin.H{
+				"code": 0,
+				"msg":  "Success",
+			})
+		} else {
+			c.IndentedJSON(http.StatusBadRequest, gin.H{
+				"code": errorCode,
+				"msg":  "Failure",
+			})
+		}
+	}()
+	contentLength = c.Request.ContentLength
+	if contentLength <= 0 || contentLength > 1024*1024*1024*2 {
+		log.Printf("content_length error\n")
+		errorCode = 1
+		return
+	}
+	contentTypes, has_key := c.Request.Header["Content-Type"]
+	if !has_key {
+		log.Printf("Content-Type error\n")
+		errorCode = 2
+		return
+	}
+	if len(contentTypes) != 1 {
+		log.Printf("Content-Type count error\n")
+		errorCode = 3
+		return
+	}
+	contentType := contentTypes[0]
+	log.Printf("Content-Type:", contentType)
+	log.Printf("Content-Length:", contentLength)
+	filename := fmt.Sprintf("camera_%s", time.Now().Format("2006_0102_150405"))
+	wwwDir := filepath.Join(utils.DataDir(), "www")
+	cameraDir := filepath.Join(wwwDir, "camera", filename)
+	fmt.Println("开始处理数据...", cameraDir)
+	out, err := os.Create(cameraDir)
+	if err != nil {
+		errorCode = 4
+		return
+	}
+	defer out.Close()
+
+	n, err := io.Copy(out, c.Request.Body)
+	if err != nil {
+		errorCode = 5
+		return
+	}
+	//buf := make([]byte, 1024)
+	//left := (int)(contentLength)
+	//for {
+	//	// 接收服务端信息
+	//	n, err := c.Request.Body.Read(buf)
+	//	if n > 0 {
+	//		res := string(buf[:n])
+	//		fmt.Print(len(res))
+	//	}
+	//	if n == 0 && err == io.EOF {
+	//		break
+	//	}
+	//	left = left - n
+	//	if left <= 0 {
+	//		break
+	//	}
+	//	if err != nil {
+	//		fmt.Println(err)
+	//		continue
+	//	}
+	//}
+	fmt.Println("处理数据完成. 字节数:", n)
 }

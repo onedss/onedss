@@ -19,10 +19,10 @@ func StartApp() {
 	}
 
 	httpPort := utils.Conf().Section("http").Key("port").MustInt(10008)
-	oneHttpServer := NewOneHttpServer(httpPort)
 	sigPort := utils.Conf().Section("signaling").Key("port").MustInt(51989)
-	signalingServer := NewSignalingServer(sigPort)
 	rtspServer := rtsp.GetServer()
+	oneHttpServer := NewOneHttpServer(httpPort)
+	signalingServer := NewSignalingServer(sigPort)
 	oneRtspServer := NewOneRtspServer(rtspServer.TCPPort, rtspServer)
 	p := &application{}
 	p.AddServer(oneHttpServer)

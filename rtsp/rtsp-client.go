@@ -379,7 +379,11 @@ func (client *RTSPClient) startStream() {
 	logger := client.GetLogger()
 	startTime := time.Now()
 	loggerTime := time.Now().Add(-10 * time.Second)
-	defer client.Stop()
+	log.Println("startStream begin...")
+	defer func() {
+		client.Stop()
+		log.Println("startStream end.")
+	}()
 	for !client.Stoped {
 		if client.OptionIntervalMillis > 0 {
 			if time.Since(startTime) > time.Duration(client.OptionIntervalMillis)*time.Millisecond {
@@ -522,8 +526,7 @@ func (client *RTSPClient) startStream() {
 
 func (client *RTSPClient) Init(timeout time.Duration, onSdp OnSdp) (err error) {
 	if timeout == 0 {
-		timeoutMillis := utils.Conf().Section("rtsp").Key("timeout").MustInt(28800)
-		timeout = time.Duration(timeoutMillis) * time.Millisecond
+		timeout = time.Duration(28800) * time.Millisecond
 	}
 	client.InitFlag = true
 

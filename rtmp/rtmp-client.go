@@ -12,7 +12,6 @@ import (
 	"github.com/onedss/onedss/rtprtcp"
 	"github.com/onedss/onedss/rtsp"
 	"github.com/onedss/onedss/sdp"
-	"github.com/onedss/onedss/utils"
 	"log"
 	"math/rand"
 	"net/url"
@@ -124,8 +123,7 @@ func (client *RTMPClient) Stop() {
 func (client *RTMPClient) Init(timeout time.Duration, onSdp rtsp.OnSdp) error {
 	var timeoutMillis int
 	if timeout == 0 {
-		timeoutMillis = utils.Conf().Section("rtsp").Key("timeout").MustInt(30000)
-		timeout = time.Duration(timeoutMillis) * time.Millisecond
+		timeout = time.Duration(30000) * time.Millisecond
 	}
 	client.onSdp = onSdp
 	client.pullSession = NewPullSession(func(option *PullSessionOption) {

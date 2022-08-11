@@ -522,7 +522,7 @@ func (client *RTSPClient) startStream() {
 
 func (client *RTSPClient) Init(timeout time.Duration, onSdp OnSdp) (err error) {
 	if timeout == 0 {
-		timeoutMillis := utils.Conf().Section("rtsp").Key("timeout").MustInt(0)
+		timeoutMillis := utils.Conf().Section("rtsp").Key("timeout").MustInt(28800)
 		timeout = time.Duration(timeoutMillis) * time.Millisecond
 	}
 	client.InitFlag = true

@@ -57,15 +57,24 @@ func (h *APIHandler) AlarmEvent(c *gin.Context) {
 		return
 	}
 	contentType := contentTypes[0]
-	log.Printf("Content-Type:", contentType)
-	log.Printf("Content-Length:", contentLength)
+	log.Println("Content-Type:", contentType)
+	log.Println("Content-Length:", contentLength)
 	filename := fmt.Sprintf("camera_%s", time.Now().Format("2006_0102_150405"))
-	wwwDir := filepath.Join(utils.DataDir(), "www")
-	cameraDir := filepath.Join(wwwDir, "camera", filename)
-	fmt.Println("开始处理数据...", cameraDir)
-	out, err := os.Create(cameraDir)
+	alarmDir := filepath.Join(utils.DataDir(), "www", "alarm", time.Now().Format("20060102"))
+	flag, _ := checkDirExist(alarmDir)
+	if !flag {
+		err := os.MkdirAll(alarmDir, 0777)
+		if err != nil {
+			log.Println("Mkdir error! ", err)
+			errorCode = 4
+			return
+		}
+	}
+	alarmFile := filepath.Join(alarmDir, filename)
+	fmt.Println("开始处理数据...", alarmFile)
+	out, err := os.Create(alarmFile)
 	if err != nil {
-		errorCode = 4
+		errorCode = 5
 		return
 	}
 	defer out.Close()
@@ -97,4 +106,18 @@ func (h *APIHandler) AlarmEvent(c *gin.Context) {
 	//	}
 	//}
 	fmt.Println("处理数据完成. 字节数:", n)
+}
+
+func checkDirExist(name string) (bool, error) {
+	dir, err := os.Stat(name)
+	if err == nil {
+		if dir.IsDir() {
+			return true, nil
+		}
+		return false, nil
+	}
+	if os.IsNotExist(err) {
+		return false, nil
+	}
+	return false, err
 }

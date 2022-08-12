@@ -2,6 +2,7 @@ package routers
 
 import (
 	"fmt"
+	"github.com/shirou/gopsutil/disk"
 	"log"
 	"net/http"
 	"runtime"
@@ -39,6 +40,7 @@ var (
 	ioSentData []CountData   = make([]CountData, 0)
 	pusherData []CountData   = make([]CountData, 0)
 	playerData []CountData   = make([]CountData, 0)
+	diskData   []DiskData    = make([]DiskData, 0)
 )
 
 func init() {
@@ -82,7 +84,15 @@ func init() {
 				if len(playerData) > timeSize {
 					playerData = playerData[len(playerData)-timeSize:]
 				}
-				//log.Printf("%v", ioCounter)
+				infos, _ := disk.Partitions(false)
+				for _, info := range infos {
+					disk, _ := disk.Usage(info.Mountpoint)
+					diskData = append(diskData, DiskData{Disk: disk.Path, Total: disk.Total, Used: disk.Used})
+					//log.Printf("%v", disk)
+				}
+				if len(diskData) > len(infos) {
+					diskData = diskData[len(diskData)-len(infos):]
+				}
 			}
 		}
 	}()
@@ -134,6 +144,7 @@ func (h *APIHandler) GetServerInfo(c *gin.Context) {
 		"playerData":       playerData,
 		"ioRecvData":       ioRecvData,
 		"ioSentData":       ioSentData,
+		"diskData":         diskData,
 	})
 }
 

@@ -15,8 +15,8 @@ type PercentData struct {
 
 type DiskData struct {
 	Disk  string `json:"disk"`
-	Total int    `json:"total"`
-	Used  int    `json:"used"`
+	Total uint64 `json:"total"`
+	Used  uint64 `json:"used"`
 }
 
 type CountData struct {

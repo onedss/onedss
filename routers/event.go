@@ -16,6 +16,14 @@ import (
  * @apiDefine event 事件
  */
 
+func (h *APIHandler) AlarmPicture(c *gin.Context) {
+
+}
+
+func (h *APIHandler) AlarmRecord(c *gin.Context) {
+
+}
+
 /**
  * @api {get} /api/v1/event/receive 接收推送事件
  * @apiGroup event
@@ -81,7 +89,7 @@ func (h *APIHandler) AlarmEvent(c *gin.Context) {
 
 	n, err := io.Copy(out, c.Request.Body)
 	if err != nil {
-		errorCode = 5
+		errorCode = 6
 		return
 	}
 	//buf := make([]byte, 1024)
@@ -106,6 +114,10 @@ func (h *APIHandler) AlarmEvent(c *gin.Context) {
 	//	}
 	//}
 	fmt.Println("处理数据完成. 字节数:", n)
+}
+
+func saveToDisk(path string) (bool, error) {
+	return false, nil
 }
 
 func checkDirExist(name string) (bool, error) {

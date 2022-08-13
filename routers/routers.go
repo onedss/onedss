@@ -144,6 +144,10 @@ func Init() (err error) {
 		api.GET("/stream/stop", API.StreamStop)
 
 		api.POST("/event/receive", API.AlarmEvent)
+		api.POST("/event/jpg", API.AlarmPicture)
+		api.POST("/event/record", API.AlarmRecord)
+
+		api.GET("/processinfo", API.GetProcessInfo)
 	}
 
 	return

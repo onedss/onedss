@@ -1,6 +1,7 @@
 package routers
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/onedss/onedss/utils"
@@ -15,6 +16,16 @@ import (
 /**
  * @apiDefine event 事件
  */
+
+type AlarmEvent struct {
+	DeviceSerial string `form:"deviceSerial" binding:"required"`
+	ChannelNo    string `form:"channelNo" binding:"required"`
+	AlarmTime    int    `form:"alarmTime" binding:"required"`
+	AlarmType    int    `form:"alarmType"`
+	RecState     int    `form:"recState"`
+	Jpg          string `form:"jpg"`
+	Record       string `form:"record"`
+}
 
 func (h *APIHandler) AlarmPicture(c *gin.Context) {
 
@@ -79,44 +90,70 @@ func (h *APIHandler) AlarmEvent(c *gin.Context) {
 		}
 	}
 	alarmFile := filepath.Join(alarmDir, filename)
-	fmt.Println("开始处理数据...", alarmFile)
+	log.Println("开始处理数据...", alarmFile)
 	out, err := os.Create(alarmFile)
 	if err != nil {
 		errorCode = 5
 		return
 	}
 	defer out.Close()
+	//var json []string
+	//reader := bufio.NewReader(c.Request.Body)
+	//for {
+	//	line, err := reader.ReadBytes(':')
+	//	if err != nil {
+	//		out.Write(line)
+	//		if err == io.EOF {
+	//			break
+	//		}
+	//	}
+	//	out.Write(line)
+	//	json = append(json, string(line))
+	//	value, err := reader.ReadBytes(',')
+	//	if err != nil {
+	//		out.Write(value)
+	//		if err == io.EOF {
+	//			break
+	//		}
+	//	}
+	//	out.Write(value)
+	//	json = append(json, string(value))
+	//}
+	//jsonFile := filepath.Join(alarmDir, filename+".json")
+	//file, err := os.Create(jsonFile)
+	//if err != nil {
+	//	errorCode = 6
+	//	return
+	//}
+	//defer file.Close()
+	//json = append(json, "\"\"}")
+	//jsonText := strings.Join(json, "")
+	//io.WriteString(file, jsonText)
+	//log.Println("处理数据完成.", alarmFile)
 
 	n, err := io.Copy(out, c.Request.Body)
 	if err != nil {
 		errorCode = 6
 		return
 	}
-	//buf := make([]byte, 1024)
-	//left := (int)(contentLength)
-	//for {
-	//	// 接收服务端信息
-	//	n, err := c.Request.Body.Read(buf)
-	//	if n > 0 {
-	//		res := string(buf[:n])
-	//		fmt.Print(len(res))
-	//	}
-	//	if n == 0 && err == io.EOF {
-	//		break
-	//	}
-	//	left = left - n
-	//	if left <= 0 {
-	//		break
-	//	}
-	//	if err != nil {
-	//		fmt.Println(err)
-	//		continue
-	//	}
-	//}
-	fmt.Println("处理数据完成. 字节数:", n)
+	log.Println("保存数据完成. 字节数:", n)
 }
 
-func saveToDisk(path string) (bool, error) {
+func readFromDisk(path string) (bool, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		log.Println("打开文件出错！", path, err)
+		return false, err
+	}
+	defer file.Close()
+	reader := bufio.NewReader(file)
+	for {
+		reader.ReadSlice(',')
+		//line, err := reader.ReadString(',')
+		if err == io.EOF {
+			break
+		}
+	}
 	return false, nil
 }
 

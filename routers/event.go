@@ -19,9 +19,10 @@ import (
  */
 
 type AlarmEvent struct {
-	DeviceSerial string `form:"deviceSerial" binding:"required"`
-	ChannelNo    string `form:"channelNo" binding:"required"`
-	AlarmTime    int    `form:"alarmTime" binding:"required"`
+	AlarmId      string `form:"alarmId" binding:"required"`
+	DeviceSerial string `form:"deviceSerial"`
+	ChannelNo    string `form:"channelNo"`
+	AlarmTime    int    `form:"alarmTime"`
 	AlarmType    int    `form:"alarmType"`
 	RecState     int    `form:"recState"`
 	Jpg          string `form:"jpg"`

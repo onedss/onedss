@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -97,46 +98,46 @@ func (h *APIHandler) AlarmEvent(c *gin.Context) {
 		return
 	}
 	defer out.Close()
-	//var json []string
-	//reader := bufio.NewReader(c.Request.Body)
-	//for {
-	//	line, err := reader.ReadBytes(':')
-	//	if err != nil {
-	//		out.Write(line)
-	//		if err == io.EOF {
-	//			break
-	//		}
-	//	}
-	//	out.Write(line)
-	//	json = append(json, string(line))
-	//	value, err := reader.ReadBytes(',')
-	//	if err != nil {
-	//		out.Write(value)
-	//		if err == io.EOF {
-	//			break
-	//		}
-	//	}
-	//	out.Write(value)
-	//	json = append(json, string(value))
-	//}
-	//jsonFile := filepath.Join(alarmDir, filename+".json")
-	//file, err := os.Create(jsonFile)
-	//if err != nil {
-	//	errorCode = 6
-	//	return
-	//}
-	//defer file.Close()
-	//json = append(json, "\"\"}")
-	//jsonText := strings.Join(json, "")
-	//io.WriteString(file, jsonText)
-	//log.Println("处理数据完成.", alarmFile)
-
-	n, err := io.Copy(out, c.Request.Body)
+	var json []string
+	reader := bufio.NewReader(c.Request.Body)
+	for {
+		line, err := reader.ReadBytes(':')
+		if err != nil {
+			out.Write(line)
+			if err == io.EOF {
+				break
+			}
+		}
+		out.Write(line)
+		json = append(json, string(line))
+		value, err := reader.ReadBytes(',')
+		if err != nil {
+			out.Write(value)
+			if err == io.EOF {
+				break
+			}
+		}
+		out.Write(value)
+		json = append(json, string(value))
+	}
+	jsonFile := filepath.Join(alarmDir, filename+".json")
+	file, err := os.Create(jsonFile)
 	if err != nil {
 		errorCode = 6
 		return
 	}
-	log.Println("保存数据完成. 字节数:", n)
+	defer file.Close()
+	json = append(json, "\"\"}")
+	jsonText := strings.Join(json, "")
+	io.WriteString(file, jsonText)
+	log.Println("处理数据完成.", alarmFile)
+
+	//n, err := io.Copy(out, c.Request.Body)
+	//if err != nil {
+	//	errorCode = 6
+	//	return
+	//}
+	//log.Println("保存数据完成. 字节数:", n)
 }
 
 func readFromDisk(path string) (bool, error) {

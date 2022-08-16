@@ -113,13 +113,10 @@ func (h *APIHandler) AlarmEvent(c *gin.Context) {
 		value, err := reader.ReadBytes(',')
 		out.Write(value)
 		if strings.Index(string(line), "jpg") > 0 {
-			//out.Write([]byte{'"', '"', ','})
 			json = append(json, "\"\",")
 		} else if strings.Index(string(line), "record") > 0 {
-			//out.Write([]byte{'"', '"', ','})
 			json = append(json, "\"\",")
 		} else {
-			//out.Write(value)
 			json = append(json, string(value))
 		}
 		if err != nil {

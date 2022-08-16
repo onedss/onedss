@@ -19,14 +19,13 @@ import (
  */
 
 type AlarmEvent struct {
-	AlarmId      string `form:"alarmId" binding:"required"`
-	DeviceSerial string `form:"deviceSerial"`
-	ChannelNo    string `form:"channelNo"`
-	AlarmTime    int    `form:"alarmTime"`
-	AlarmType    int    `form:"alarmType"`
-	RecState     int    `form:"recState"`
-	Jpg          string `form:"jpg"`
-	Record       string `form:"record"`
+	AlarmId      string `json:"alarmId" binding:"required"`
+	DeviceSerial string `json:"deviceSerial"`
+	ChannelNo    int    `json:"channelNo"`
+	AlarmTime    int    `json:"alarmTime"`
+	AlarmType    int    `json:"alarmType"`
+	RecState     int    `json:"recState"`
+	Jpg          string `json:"jpg"`
 }
 
 func (h *APIHandler) AlarmPicture(c *gin.Context) {
@@ -135,6 +134,14 @@ func (h *APIHandler) AlarmEvent(c *gin.Context) {
 	jsonText := strings.Join(json, "")
 	io.WriteString(file, jsonText)
 	log.Println("处理数据完成.", alarmFile)
+
+	//var event AlarmEvent
+	//if err := c.ShouldBindJSON(&event); err != nil {
+	//	errorCode = 6
+	//	log.Println(err)
+	//	return
+	//}
+	//log.Println("处理数据完成.", alarmFile)
 
 	//n, err := io.Copy(out, c.Request.Body)
 	//if err != nil {

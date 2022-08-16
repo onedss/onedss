@@ -102,23 +102,27 @@ func (h *APIHandler) AlarmEvent(c *gin.Context) {
 	reader := bufio.NewReader(c.Request.Body)
 	for {
 		line, err := reader.ReadBytes(':')
-		if err != nil {
-			out.Write(line)
-			if err == io.EOF {
-				break
-			}
-		}
 		out.Write(line)
 		json = append(json, string(line))
-		value, err := reader.ReadBytes(',')
 		if err != nil {
-			out.Write(value)
 			if err == io.EOF {
 				break
 			}
 		}
+		value, err := reader.ReadBytes(',')
 		out.Write(value)
-		json = append(json, string(value))
+		if strings.Index(string(line), "jpg") > 0 {
+			json = append(json, "\"\",")
+		} else if strings.Index(string(line), "record") > 0 {
+			json = append(json, "\"\",")
+		} else {
+			json = append(json, string(value))
+		}
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+		}
 	}
 	jsonFile := filepath.Join(alarmDir, filename+".json")
 	file, err := os.Create(jsonFile)
@@ -127,7 +131,6 @@ func (h *APIHandler) AlarmEvent(c *gin.Context) {
 		return
 	}
 	defer file.Close()
-	json = append(json, "\"\"}")
 	jsonText := strings.Join(json, "")
 	io.WriteString(file, jsonText)
 	log.Println("处理数据完成.", alarmFile)

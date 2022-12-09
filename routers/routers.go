@@ -13,8 +13,8 @@ import (
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/onedss/cors"
+	"github.com/onedss/onedss/sessions"
 	"github.com/onedss/onedss/utils"
-	"github.com/onedss/sessions"
 	validator "gopkg.in/go-playground/validator.v8"
 )
 

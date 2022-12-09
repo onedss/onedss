@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/onedss/onedss/app"
+	"github.com/onedss/onedss/buildtime"
 	"github.com/onedss/onedss/core"
 	"github.com/onedss/onedss/routers"
 	"github.com/onedss/onedss/utils"
@@ -15,15 +16,15 @@ var (
 )
 
 func main() {
-	log.SetPrefix("[EasyDarwin] ")
+	log.SetPrefix("[OneDss] ")
 	log.SetFlags(log.LstdFlags)
 	if utils.Debug {
 		log.SetFlags(log.Lshortfile | log.Ldate | log.Lmicroseconds)
 	}
-	core.Info("git commit code :", gitCommitCode)
-	core.Info("build date :", buildDateTime)
 	routers.BuildVersion = fmt.Sprintf("%s.%s", routers.BuildVersion, gitCommitCode)
-	routers.BuildDateTime = buildDateTime
+	routers.BuildDateTime = fmt.Sprintf("<%s> %s", buildtime.BuildTime.Format(utils.DateTimeLayout), buildDateTime)
+	core.Info("BuildVersion:", routers.BuildVersion)
+	core.Info("BuildTime:", routers.BuildDateTime)
 
 	app.StartApp()
 }

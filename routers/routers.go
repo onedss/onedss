@@ -113,7 +113,7 @@ func Init() (err error) {
 
 	store := sessions.NewGormStoreWithOptions(db.SQLite, sessions.GormStoreOptions{
 		TableName: "t_sessions",
-	}, []byte("EasyDarwin@2018"))
+	}, []byte("OneDss@2018"))
 	tokenTimeout := utils.Conf().Section("http").Key("token_timeout").MustInt(7 * 86400)
 	store.Options(sessions.Options{HttpOnly: true, MaxAge: tokenTimeout, Path: "/"})
 	sessionHandle := sessions.Sessions("token", store)

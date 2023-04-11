@@ -150,5 +150,14 @@ func Init() (err error) {
 		api.GET("/processinfo", API.GetProcessInfo)
 	}
 
+	{
+
+		mp4Path := utils.Conf().Section("rtsp").Key("m3u8_dir_path").MustString("")
+		if len(mp4Path) != 0 {
+			Router.Use(static.Serve("/record", static.LocalFile(mp4Path, true)))
+		}
+
+	}
+
 	return
 }

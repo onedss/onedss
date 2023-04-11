@@ -1,14 +1,10 @@
 package routers
 
 import (
-	"bytes"
 	"log"
 	"math"
 	"os"
-	"os/exec"
 	"path/filepath"
-	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -113,14 +109,14 @@ func (h *APIHandler) RecordFiles(c *gin.Context) {
 	files := make([]interface{}, 0)
 	mp4Path := utils.Conf().Section("rtsp").Key("m3u8_dir_path").MustString("")
 	if mp4Path != "" {
-		ffmpeg_path := utils.Conf().Section("rtsp").Key("ffmpeg_path").MustString("")
-		ffmpeg_folder, executable := filepath.Split(ffmpeg_path)
-		split := strings.Split(executable, ".")
-		suffix := ""
-		if len(split) > 1 {
-			suffix = split[1]
-		}
-		ffprobe := ffmpeg_folder + "ffprobe" + suffix
+		//ffmpeg_path := utils.Conf().Section("rtsp").Key("ffmpeg_path").MustString("")
+		//ffmpeg_folder, executable := filepath.Split(ffmpeg_path)
+		//split := strings.Split(executable, ".")
+		//suffix := ""
+		//if len(split) > 1 {
+		//	suffix = split[1]
+		//}
+		//ffprobe := ffmpeg_folder + "ffprobe" + suffix
 		folder := filepath.Join(mp4Path, form.Folder)
 		visit := func(files *[]interface{}) filepath.WalkFunc {
 			return func(path string, info os.FileInfo, err error) error {
@@ -142,29 +138,8 @@ func (h *APIHandler) RecordFiles(c *gin.Context) {
 				if !strings.HasSuffix(strings.ToLower(info.Name()), ".m3u8") && !strings.HasSuffix(strings.ToLower(info.Name()), ".ts") {
 					return nil
 				}
-				cmd := exec.Command(ffprobe, "-i", path)
-				cmdOutput := &bytes.Buffer{}
-				//cmd.Stdout = cmdOutput
-				cmd.Stderr = cmdOutput
-				err = cmd.Run()
-				bytes := cmdOutput.Bytes()
-				output := string(bytes)
-				//log.Printf("%v result:%v", cmd, output)
-				var average = regexp.MustCompile(`Duration: ((\d+):(\d+):(\d+).(\d+))`)
-				result := average.FindStringSubmatch(output)
 				duration := time.Duration(0)
 				durationStr := ""
-				if len(result) > 0 {
-					durationStr = result[1]
-					h, _ := strconv.Atoi(result[2])
-					duration += time.Duration(h) * time.Hour
-					m, _ := strconv.Atoi(result[3])
-					duration += time.Duration(m) * time.Minute
-					s, _ := strconv.Atoi(result[4])
-					duration += time.Duration(s) * time.Second
-					millis, _ := strconv.Atoi(result[5])
-					duration += time.Duration(millis) * time.Millisecond
-				}
 
 				*files = append(*files, map[string]interface{}{
 					"path":           path[len(mp4Path):],

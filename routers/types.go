@@ -3,7 +3,7 @@ package routers
 import "github.com/onedss/onedss/utils"
 
 var (
-	BuildVersion  = "v1.0.4"
+	BuildVersion  = "v1.0.5"
 	BuildDateTime = ""
 	AgentName     = "OneDSS Client"
 )

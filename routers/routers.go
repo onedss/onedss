@@ -122,6 +122,13 @@ func Init() (err error) {
 		wwwDir := filepath.Join(utils.DataDir(), "www")
 		log.Println("www root -->", wwwDir)
 		Router.Use(static.Serve("/", static.LocalFile(wwwDir, true)))
+
+		mediaDir := utils.Conf().Section("http").Key("meida_path").MustString("")
+		if mediaDir != "" {
+			log.Println("media resources root -->", mediaDir)
+			Router.Use(static.Serve("/media_file", static.LocalFile(mediaDir, false)))
+			Router.Use(static.Serve("/media_list", static.LocalFile(mediaDir, true)))
+		}
 	}
 
 	{

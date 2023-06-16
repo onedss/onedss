@@ -1,4 +1,4 @@
-# OneDss (One's Darwin Streaming Service) #
+# OneDss (One Darwin Streaming Service) #
 
 OneDss is open source streaming service, focus RTSP/RTMP technology.
 
